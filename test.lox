@@ -1,0 +1,17 @@
+// this is a comment
+//(( )){} // grouping stuff
+//!*+-/=<> <= == // operators
+//"test text" <>
+//22.3
+//33.4.6
+//.55
+
+var testValue = 45.0
+
+for (var i = 0; i< 100; i=i+1) {
+  if (i <= testValue) {
+    print "less"
+  } else {
+    print "more"
+  }
+}
