@@ -4,6 +4,25 @@ import (
 	"unicode"
 )
 
+var keywords = map[string]TokenType{
+	"and":    AND,
+	"class":  CLASS,
+	"else":   ELSE,
+	"false":  FALSE,
+	"for":    FOR,
+	"fun":    FUN,
+	"if":     IF,
+	"nil":    NIL,
+	"or":     OR,
+	"print":  PRINT,
+	"return": RETURN,
+	"super":  SUPER,
+	"this":   THIS,
+	"true":   TRUE,
+	"var":    VAR,
+	"while":  WHILE,
+}
+
 // Lexer holds the input and current scan position
 type Lexer struct {
 	source  string
@@ -190,8 +209,12 @@ func (l *Lexer) lexIdentifier() {
 	for !l.isAtEnd() && unicode.IsLetter(l.peek()) {
 		l.advance()
 	}
-	value := l.source[l.start:l.current]
-	l.addToken(IDENTIFIER, value)
+	text := l.source[l.start:l.current]
+	tokenType := IDENTIFIER
+	if reserved, ok := keywords[text]; ok {
+		tokenType = reserved
+	}
+	l.addToken(tokenType, "")
 }
 
 func isWhitespace(ch rune) bool {

@@ -7,8 +7,8 @@
 //.55
 
 var testValue = 45.0
-
-%for (var i = 0; i< 100; i=i+1) {
+%
+for (var i = 0; i< 100; i=i+1) {
   if (i <= testValue) {
     print "less"
   } else {
