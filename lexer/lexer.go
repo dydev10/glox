@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"unicode"
 )
 
@@ -109,7 +110,7 @@ func (l *Lexer) Lex() []Token {
 			l.lexIdentifier()
 		default:
 			// throw unknown token error and break
-			l.tokenError(ch)
+			l.logError(fmt.Sprintf("Unexpected character: %c", ch))
 		}
 	}
 
@@ -174,8 +175,7 @@ func (l *Lexer) lexString() {
 	}
 
 	if l.isAtEnd() {
-		// TODO: add error reporting for this error
-		panic("Unterminated string")
+		l.logError("Unterminated string.")
 		return
 	}
 
@@ -221,9 +221,9 @@ func isWhitespace(ch rune) bool {
 	return unicode.IsSpace(ch)
 }
 
-func (l *Lexer) tokenError(ch rune) {
+func (l *Lexer) logError(message string) {
 	l.Errors = append(l.Errors, LexError{
-		line: l.line,
-		ch:   ch,
+		line:    l.line,
+		message: message,
 	})
 }
