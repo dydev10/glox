@@ -31,9 +31,9 @@ const (
 	LESS_EQUAL
 
 	// Literals
-	IDENTIFIER
 	STRING
 	NUMBER
+	IDENTIFIER
 
 	// Keywords
 	AND
@@ -75,9 +75,9 @@ var tokenTypeName = map[TokenType]string{
 	GREATER_EQUAL: "GREATER_EQUAL",
 	LESS:          "LESS",
 	LESS_EQUAL:    "LESS_EQUAL",
-	IDENTIFIER:    "IDENTIFIER",
 	STRING:        "STRING",
 	NUMBER:        "NUMBER",
+	IDENTIFIER:    "IDENTIFIER",
 	AND:           "AND",
 	CLASS:         "CLASS",
 	ELSE:          "ELSE",
