@@ -5,7 +5,8 @@
 //22.3
 //33.4.6
 //.55
-
+var 6az = 0.1
+var _123foo = 20
 var testValue = 45.12
 %
 for (var i = 0; i< 100; i=i+1) {

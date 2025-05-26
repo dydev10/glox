@@ -105,9 +105,9 @@ func (l *Lexer) Lex() []Token {
 			}
 		case ch == '"':
 			l.lexString()
-		case unicode.IsDigit(ch):
+		case isDigit(ch):
 			l.lexNumber()
-		case unicode.IsLetter(ch):
+		case isAlpha(ch):
 			l.lexIdentifier()
 		default:
 			// throw unknown token error and break
@@ -127,6 +127,15 @@ func (l *Lexer) advance() rune {
 	ch := l.source[l.current]
 	l.current++
 	return rune(ch)
+}
+
+func (l *Lexer) addToken(t TokenType, literal any) {
+	text := l.source[l.start:l.current]
+	l.tokens = append(l.tokens, Token{
+		Type:    t,
+		Lexeme:  text,
+		Literal: literal,
+	})
 }
 
 func (l *Lexer) match(expected rune) bool {
@@ -149,15 +158,6 @@ func (l *Lexer) peekNext() rune {
 		return 0
 	}
 	return rune(l.source[l.current+1])
-}
-
-func (l *Lexer) addToken(t TokenType, literal any) {
-	text := l.source[l.start:l.current]
-	l.tokens = append(l.tokens, Token{
-		Type:    t,
-		Lexeme:  text,
-		Literal: literal,
-	})
 }
 
 func (l *Lexer) skipComment() {
@@ -187,13 +187,13 @@ func (l *Lexer) lexString() {
 }
 
 func (l *Lexer) lexNumber() {
-	for unicode.IsDigit(l.peek()) {
+	for isDigit(l.peek()) {
 		l.advance()
 	}
 
-	if l.peek() == '.' && unicode.IsDigit(l.peekNext()) {
+	if l.peek() == '.' && isDigit(l.peekNext()) {
 		l.advance()
-		for !l.isAtEnd() && unicode.IsDigit(l.peek()) {
+		for !l.isAtEnd() && isDigit(l.peek()) {
 			l.advance()
 		}
 	}
@@ -207,7 +207,7 @@ func (l *Lexer) lexNumber() {
 }
 
 func (l *Lexer) lexIdentifier() {
-	for !l.isAtEnd() && unicode.IsLetter(l.peek()) {
+	for !l.isAtEnd() && isAlphaNumeric(l.peek()) {
 		l.advance()
 	}
 	text := l.source[l.start:l.current]
@@ -220,6 +220,18 @@ func (l *Lexer) lexIdentifier() {
 
 func isWhitespace(ch rune) bool {
 	return unicode.IsSpace(ch)
+}
+
+func isDigit(ch rune) bool {
+	return unicode.IsDigit(ch)
+}
+
+func isAlpha(ch rune) bool {
+	return unicode.IsLetter(ch) || ch == '_'
+}
+
+func isAlphaNumeric(ch rune) bool {
+	return isAlpha(ch) || isDigit(ch)
 }
 
 func (l *Lexer) logError(message string) {
