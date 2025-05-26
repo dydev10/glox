@@ -6,7 +6,7 @@
 //33.4.6
 //.55
 
-var testValue = 45.0
+var testValue = 45.12
 %
 for (var i = 0; i< 100; i=i+1) {
   if (i <= testValue) {

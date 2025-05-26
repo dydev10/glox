@@ -2,6 +2,7 @@ package lexer
 
 import (
 	"fmt"
+	"strconv"
 	"unicode"
 )
 
@@ -53,54 +54,54 @@ func (l *Lexer) Lex() []Token {
 		case ch == '\n':
 			l.line++
 		case ch == '(':
-			l.addToken(LEFT_PAREN, "")
+			l.addToken(LEFT_PAREN, nil)
 		case ch == ')':
-			l.addToken(RIGHT_PAREN, "")
+			l.addToken(RIGHT_PAREN, nil)
 		case ch == '{':
-			l.addToken(LEFT_BRACE, "")
+			l.addToken(LEFT_BRACE, nil)
 		case ch == '}':
-			l.addToken(RIGHT_BRACE, "")
+			l.addToken(RIGHT_BRACE, nil)
 		case ch == ',':
-			l.addToken(COMMA, "")
+			l.addToken(COMMA, nil)
 		case ch == '.':
-			l.addToken(DOT, "")
+			l.addToken(DOT, nil)
 		case ch == '+':
-			l.addToken(PLUS, "")
+			l.addToken(PLUS, nil)
 		case ch == '-':
-			l.addToken(MINUS, "")
+			l.addToken(MINUS, nil)
 		case ch == ';':
-			l.addToken(SEMICOLON, "")
+			l.addToken(SEMICOLON, nil)
 		case ch == '*':
-			l.addToken(STAR, "")
+			l.addToken(STAR, nil)
 		case ch == '!':
 			if l.match('=') {
-				l.addToken(BANG_EQUAL, "")
+				l.addToken(BANG_EQUAL, nil)
 			} else {
-				l.addToken(BANG, "")
+				l.addToken(BANG, nil)
 			}
 		case ch == '=':
 			if l.match('=') {
-				l.addToken(EQUAL_EQUAL, "")
+				l.addToken(EQUAL_EQUAL, nil)
 			} else {
-				l.addToken(EQUAL, "")
+				l.addToken(EQUAL, nil)
 			}
 		case ch == '<':
 			if l.match('=') {
-				l.addToken(LESS_EQUAL, "")
+				l.addToken(LESS_EQUAL, nil)
 			} else {
-				l.addToken(LESS, "")
+				l.addToken(LESS, nil)
 			}
 		case ch == '>':
 			if l.match('=') {
-				l.addToken(GREATER_EQUAL, "")
+				l.addToken(GREATER_EQUAL, nil)
 			} else {
-				l.addToken(GREATER, "")
+				l.addToken(GREATER, nil)
 			}
 		case ch == '/':
 			if l.match('/') {
 				l.skipComment()
 			} else {
-				l.addToken(SLASH, "")
+				l.addToken(SLASH, nil)
 			}
 		case ch == '"':
 			l.lexString()
@@ -114,7 +115,7 @@ func (l *Lexer) Lex() []Token {
 		}
 	}
 
-	l.tokens = append(l.tokens, Token{Type: EOF, Lexeme: "", Literal: ""})
+	l.tokens = append(l.tokens, Token{Type: EOF, Lexeme: "", Literal: nil})
 	return l.tokens
 }
 
@@ -150,7 +151,7 @@ func (l *Lexer) peekNext() rune {
 	return rune(l.source[l.current+1])
 }
 
-func (l *Lexer) addToken(t TokenType, literal string) {
+func (l *Lexer) addToken(t TokenType, literal any) {
 	text := l.source[l.start:l.current]
 	l.tokens = append(l.tokens, Token{
 		Type:    t,
@@ -197,11 +198,11 @@ func (l *Lexer) lexNumber() {
 		}
 	}
 
-	value := l.source[l.start:l.current]
-	// value, err := strconv.ParseFloat(l.source[l.start:l.current], 64)
-	// if err != nil {
-	// 	panic("Float parser error")
-	// }
+	value, err := strconv.ParseFloat(l.source[l.start:l.current], 64)
+	if err != nil {
+		l.logError("Number cannot be parsed to float64")
+		return
+	}
 	l.addToken(NUMBER, value)
 }
 
@@ -214,7 +215,7 @@ func (l *Lexer) lexIdentifier() {
 	if reserved, ok := keywords[text]; ok {
 		tokenType = reserved
 	}
-	l.addToken(tokenType, "")
+	l.addToken(tokenType, nil)
 }
 
 func isWhitespace(ch rune) bool {
