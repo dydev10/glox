@@ -32,6 +32,14 @@ func main() {
 	 */
 	l := lexer.New(string(fileContents))
 	tokens := l.Lex()
+	hadErrors := len(l.Errors) > 0
+
+	if hadErrors {
+		hadErrors = true
+		for _, lexError := range l.Errors {
+			fmt.Fprintln(os.Stderr, lexError.String())
+		}
+	}
 
 	for _, v := range tokens {
 		fmt.Println(v.String())

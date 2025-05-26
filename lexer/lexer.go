@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"unicode"
 )
 
@@ -12,6 +11,7 @@ type Lexer struct {
 	current int
 	line    int
 	tokens  []Token
+	Errors  []LexError
 }
 
 func New(source string) *Lexer {
@@ -19,6 +19,7 @@ func New(source string) *Lexer {
 		source: source,
 		line:   1,
 		tokens: []Token{},
+		Errors: []LexError{},
 	}
 }
 
@@ -89,7 +90,7 @@ func (l *Lexer) Lex() []Token {
 			l.lexIdentifier()
 		default:
 			// throw unknown token error and break
-			panic(fmt.Sprintf("unknown token %q", ch))
+			l.tokenError(ch)
 		}
 	}
 
@@ -154,6 +155,7 @@ func (l *Lexer) lexString() {
 	}
 
 	if l.isAtEnd() {
+		// TODO: add error reporting for this error
 		panic("Unterminated string")
 		return
 	}
@@ -194,4 +196,11 @@ func (l *Lexer) lexIdentifier() {
 
 func isWhitespace(ch rune) bool {
 	return unicode.IsSpace(ch)
+}
+
+func (l *Lexer) tokenError(ch rune) {
+	l.Errors = append(l.Errors, LexError{
+		line: l.line,
+		ch:   ch,
+	})
 }
