@@ -44,4 +44,10 @@ func main() {
 	for _, v := range tokens {
 		fmt.Println(v.String())
 	}
+
+	if hadErrors {
+		os.Exit(65)
+	} else {
+		os.Exit(0)
+	}
 }
