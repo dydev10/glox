@@ -8,5 +8,5 @@ type LexError struct {
 }
 
 func (le *LexError) String() string {
-	return fmt.Sprintf("[Line %d] Error: Unexpected character: %s", le.line, string(le.ch))
+	return fmt.Sprintf("[line %d] Error: Unexpected character: %s", le.line, string(le.ch))
 }
