@@ -14,22 +14,26 @@ type Token struct {
 
 func (t *Token) String() string {
 	s := fmt.Sprintf("%v %s ", t.Type, t.Lexeme)
+	s += PrintLiteral(t.Literal)
 
-	switch l := t.Literal.(type) {
+	return s
+}
+
+// helper function to stringify token's Literal value by converting to string based on type
+func PrintLiteral(literal any) string {
+	switch l := literal.(type) {
 	case string:
-		s += l
+		return l
 	case float64:
 		nStr := strconv.FormatFloat(l, 'f', -1, 64)
 		// force decimal even when no decimal needed for representation to match java spec
 		if !strings.Contains(nStr, ".") {
 			nStr += ".0"
 		}
-		s += nStr
+		return nStr
 	case nil:
-		s += "null"
+		return "null"
 	default:
 		panic("Unknown value type in literal")
 	}
-
-	return s
 }
