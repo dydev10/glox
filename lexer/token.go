@@ -34,6 +34,7 @@ func PrintLiteral(literal any) string {
 	case nil:
 		return "null"
 	default:
-		panic("Unknown value type in literal")
+		e := fmt.Sprintf("Unknown value type in literal: %v", l)
+		panic(e)
 	}
 }
