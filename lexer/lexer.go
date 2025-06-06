@@ -135,6 +135,7 @@ func (l *Lexer) addToken(t TokenType, literal any) {
 		Type:    t,
 		Lexeme:  text,
 		Literal: literal,
+		Line:    l.line,
 	})
 }
 
