@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dydev10/glox/ast"
 	"github.com/dydev10/glox/lexer"
+	"github.com/dydev10/glox/parser"
 )
 
 func main() {
@@ -15,7 +17,7 @@ func main() {
 
 	command := os.Args[1]
 
-	if command != "tokenize" {
+	if command != "tokenize" && command != "parse" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 		os.Exit(1)
 	}
@@ -41,8 +43,18 @@ func main() {
 		}
 	}
 
-	for _, v := range tokens {
-		fmt.Println(v.String())
+	if command == "tokenize" {
+		for _, v := range tokens {
+			fmt.Println(v.String())
+		}
+	}
+
+	if command == "parse" {
+		p := parser.NewParser(tokens)
+		expression := p.Parse()
+		printer := &ast.Printer{}
+		out := printer.Print(expression)
+		fmt.Printf("%s", out)
 	}
 
 	if hadErrors {
