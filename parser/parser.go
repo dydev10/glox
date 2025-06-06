@@ -167,10 +167,10 @@ func (p *Parser) unary() ast.Expr[string] {
 
 func (p *Parser) primary() ast.Expr[string] {
 	if p.match(lexer.FALSE) {
-		return &ast.Literal[string]{Value: lexer.FALSE.String()}
+		return &ast.Literal[string]{Value: "false"}
 	}
 	if p.match(lexer.TRUE) {
-		return &ast.Literal[string]{Value: lexer.TRUE.String()}
+		return &ast.Literal[string]{Value: "true"}
 	}
 	if p.match(lexer.NIL) {
 		return &ast.Literal[string]{}
