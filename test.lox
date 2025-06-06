@@ -8,6 +8,8 @@
 var 6az = 0.1
 var _123foo = 20
 var testValue = 45.12
+var bt = true
+var bt1 = false
 %
 for (var i = 0; i< 100; i=i+1) {
   if (i <= testValue) {
