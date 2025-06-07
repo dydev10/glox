@@ -10,7 +10,7 @@ import (
 func main() {
 	expression := &ast.Binary[string]{
 		Left: &ast.Unary[string]{
-			Operator: lexer.Token{
+			Operator: &lexer.Token{
 				Type:    lexer.MINUS,
 				Lexeme:  "-",
 				Literal: "",
@@ -19,7 +19,7 @@ func main() {
 				Value: float64(123),
 			},
 		},
-		Operator: lexer.Token{
+		Operator: &lexer.Token{
 			Type:    lexer.STAR,
 			Lexeme:  "*",
 			Literal: "",

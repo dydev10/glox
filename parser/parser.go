@@ -8,11 +8,11 @@ import (
 )
 
 type Parser struct {
-	tokens  []lexer.Token
+	tokens  []*lexer.Token
 	current int
 }
 
-func NewParser(tokens []lexer.Token) *Parser {
+func NewParser(tokens []*lexer.Token) *Parser {
 	return &Parser{
 		tokens:  tokens,
 		current: 0,
@@ -23,11 +23,11 @@ func (p *Parser) Parse() ast.Expr[string] {
 	return p.expression()
 }
 
-func (p *Parser) peek() lexer.Token {
+func (p *Parser) peek() *lexer.Token {
 	return p.tokens[p.current]
 }
 
-func (p *Parser) previous() lexer.Token {
+func (p *Parser) previous() *lexer.Token {
 	return p.tokens[p.current-1]
 }
 
@@ -35,7 +35,7 @@ func (p *Parser) isAtEnd() bool {
 	return p.peek().Type == lexer.EOF
 }
 
-func (p *Parser) advance() lexer.Token {
+func (p *Parser) advance() *lexer.Token {
 	if !p.isAtEnd() {
 		p.current++
 	}

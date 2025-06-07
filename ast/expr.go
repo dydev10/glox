@@ -13,10 +13,11 @@ type Visitor[R any] interface {
 	VisitUnary(expr *Unary[R]) R
 }
 
+
 type Binary[R any] struct {
-	Left     Expr[R]
-	Operator lexer.Token
-	Right    Expr[R]
+	Left Expr[R]
+	Operator *lexer.Token
+	Right Expr[R]
 }
 
 func (n *Binary[R]) Accept(v Visitor[R]) R {
@@ -40,10 +41,11 @@ func (n *Literal[R]) Accept(v Visitor[R]) R {
 }
 
 type Unary[R any] struct {
-	Operator lexer.Token
-	Right    Expr[R]
+	Operator *lexer.Token
+	Right Expr[R]
 }
 
 func (n *Unary[R]) Accept(v Visitor[R]) R {
 	return v.VisitUnary(n)
 }
+

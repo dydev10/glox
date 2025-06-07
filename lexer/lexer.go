@@ -31,7 +31,7 @@ type Lexer struct {
 	start   int
 	current int
 	line    int
-	tokens  []Token
+	tokens  []*Token
 	Errors  []LexError
 }
 
@@ -39,12 +39,12 @@ func New(source string) *Lexer {
 	return &Lexer{
 		source: source,
 		line:   1,
-		tokens: []Token{},
+		tokens: []*Token{},
 		Errors: []LexError{},
 	}
 }
 
-func (l *Lexer) Lex() []Token {
+func (l *Lexer) Lex() []*Token {
 	for !l.isAtEnd() {
 		l.start = l.current
 		ch := l.advance()
@@ -115,7 +115,7 @@ func (l *Lexer) Lex() []Token {
 		}
 	}
 
-	l.tokens = append(l.tokens, Token{Type: EOF, Lexeme: "", Literal: nil})
+	l.tokens = append(l.tokens, &Token{Type: EOF, Lexeme: "", Literal: nil})
 	return l.tokens
 }
 
@@ -131,7 +131,7 @@ func (l *Lexer) advance() rune {
 
 func (l *Lexer) addToken(t TokenType, literal any) {
 	text := l.source[l.start:l.current]
-	l.tokens = append(l.tokens, Token{
+	l.tokens = append(l.tokens, &Token{
 		Type:    t,
 		Lexeme:  text,
 		Literal: literal,
