@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/dydev10/glox/ast"
 	"github.com/dydev10/glox/lexer"
 )
@@ -10,6 +8,7 @@ import (
 type Parser struct {
 	tokens  []*lexer.Token
 	current int
+	Errors  []*ParseError
 }
 
 func NewParser(tokens []*lexer.Token) *Parser {
@@ -19,7 +18,7 @@ func NewParser(tokens []*lexer.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() ast.Expr[string] {
+func (p *Parser) Parse() (ast.Expr[string], error) {
 	return p.expression()
 }
 
@@ -63,13 +62,13 @@ func (p *Parser) match(tokenTypes ...lexer.TokenType) bool {
 	return false
 }
 
-func (p *Parser) consume(t lexer.TokenType, m string) lexer.Token {
+func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 	if p.check(t) {
-		return p.advance()
+		return p.advance(), nil
 	}
 
-	//
-	panic(fmt.Sprint(p.peek(), m))
+	err := p.logError(m)
+	return nil, err
 }
 
 /*
@@ -83,16 +82,22 @@ unary          → ( "!" | "-" ) unary | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
 */
 
-func (p *Parser) expression() ast.Expr[string] {
+func (p *Parser) expression() (ast.Expr[string], error) {
 	return p.equality()
 }
 
-func (p *Parser) equality() ast.Expr[string] {
-	expr := p.comparison()
+func (p *Parser) equality() (ast.Expr[string], error) {
+	expr, err := p.comparison()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(lexer.BANG_EQUAL, lexer.EQUAL_EQUAL) {
 		operator := p.previous()
-		right := p.comparison()
+		right, err := p.comparison()
+		if err != nil {
+			return nil, err
+		}
 		expr = &ast.Binary[string]{
 			Left:     expr,
 			Operator: operator,
@@ -100,15 +105,21 @@ func (p *Parser) equality() ast.Expr[string] {
 		}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *Parser) comparison() ast.Expr[string] {
-	expr := p.term()
+func (p *Parser) comparison() (ast.Expr[string], error) {
+	expr, err := p.term()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(lexer.GREATER, lexer.GREATER_EQUAL, lexer.LESS, lexer.LESS_EQUAL) {
 		operator := p.previous()
-		right := p.term()
+		right, err := p.term()
+		if err != nil {
+			return nil, err
+		}
 		expr = &ast.Binary[string]{
 			Left:     expr,
 			Operator: operator,
@@ -116,15 +127,21 @@ func (p *Parser) comparison() ast.Expr[string] {
 		}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *Parser) term() ast.Expr[string] {
-	expr := p.factor()
+func (p *Parser) term() (ast.Expr[string], error) {
+	expr, err := p.factor()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(lexer.MINUS, lexer.PLUS) {
 		operator := p.previous()
-		right := p.factor()
+		right, err := p.factor()
+		if err != nil {
+			return nil, err
+		}
 		expr = &ast.Binary[string]{
 			Left:     expr,
 			Operator: operator,
@@ -132,15 +149,21 @@ func (p *Parser) term() ast.Expr[string] {
 		}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *Parser) factor() ast.Expr[string] {
-	expr := p.unary()
+func (p *Parser) factor() (ast.Expr[string], error) {
+	expr, err := p.unary()
+	if err != nil {
+		return nil, err
+	}
 
 	for p.match(lexer.SLASH, lexer.STAR) {
 		operator := p.previous()
-		right := p.unary()
+		right, err := p.unary()
+		if err != nil {
+			return nil, err
+		}
 		expr = &ast.Binary[string]{
 			Left:     expr,
 			Operator: operator,
@@ -148,45 +171,65 @@ func (p *Parser) factor() ast.Expr[string] {
 		}
 	}
 
-	return expr
+	return expr, nil
 }
 
-func (p *Parser) unary() ast.Expr[string] {
+func (p *Parser) unary() (ast.Expr[string], error) {
 	if p.match(lexer.BANG, lexer.MINUS) {
 		operator := p.previous()
-		right := p.unary()
+		right, err := p.unary()
+		if err != nil {
+			return nil, err
+		}
 
 		return &ast.Unary[string]{
 			Operator: operator,
 			Right:    right,
-		}
+		}, nil
 	}
 
 	return p.primary()
 }
 
-func (p *Parser) primary() ast.Expr[string] {
+func (p *Parser) primary() (ast.Expr[string], error) {
 	if p.match(lexer.FALSE) {
-		return &ast.Literal[string]{Value: "false"}
+		return &ast.Literal[string]{Value: "false"}, nil
 	}
 	if p.match(lexer.TRUE) {
-		return &ast.Literal[string]{Value: "true"}
+		return &ast.Literal[string]{Value: "true"}, nil
 	}
 	if p.match(lexer.NIL) {
-		return &ast.Literal[string]{}
+		return &ast.Literal[string]{}, nil
 	}
 
 	if p.match(lexer.NUMBER, lexer.STRING) {
-		return &ast.Literal[string]{Value: p.previous().Literal}
+		return &ast.Literal[string]{Value: p.previous().Literal}, nil
 	}
 
 	if p.match(lexer.LEFT_PAREN) {
-		expr := p.expression()
-		p.consume(lexer.RIGHT_PAREN, "Expect ')' after expression.")
+		expr, err := p.expression()
+		if err != nil {
+			return nil, err
+		}
+		_, consumeErr := p.consume(lexer.RIGHT_PAREN, "Expect ')' after expression.")
+		if consumeErr != nil {
+			return nil, consumeErr
+		}
 		return &ast.Grouping[string]{
 			Expression: expr,
-		}
+		}, nil
 	}
 
-	panic("Unknown primary rule!!")
+	err := p.logError("Expect expression.")
+	return nil, err
+}
+
+// save errors
+func (p *Parser) logError(message string) *ParseError {
+	err := &ParseError{
+		token:   p.peek(),
+		message: message,
+	}
+	p.Errors = append(p.Errors, err)
+	return err
 }

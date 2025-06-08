@@ -32,14 +32,32 @@ func main() {
 	/*
 	* Main Lexer Code
 	 */
+	hadErrors := false
+	//lexer
 	l := lexer.New(string(fileContents))
 	tokens := l.Lex()
-	hadErrors := len(l.Errors) > 0
+	hadLexErrors := len(l.Errors) > 0
 
-	if hadErrors {
+	// parser
+	p := parser.NewParser(tokens)
+	expression, parseError := p.Parse()
+	// hadParseErrors := len(p.Errors) > 0
+	hadParseErrors := false
+	if parseError != nil {
+		hadParseErrors = true
+	}
+
+	if hadLexErrors {
 		hadErrors = true
 		for _, lexError := range l.Errors {
 			fmt.Fprintln(os.Stderr, lexError.String())
+		}
+	}
+
+	if hadParseErrors {
+		hadErrors = true
+		for _, parseError := range p.Errors {
+			fmt.Fprintln(os.Stderr, parseError.String())
 		}
 	}
 
@@ -49,9 +67,7 @@ func main() {
 		}
 	}
 
-	if command == "parse" {
-		p := parser.NewParser(tokens)
-		expression := p.Parse()
+	if command == "parse" && !hadParseErrors {
 		printer := &ast.Printer{}
 		out := printer.Print(expression)
 		fmt.Printf("%s", out)
