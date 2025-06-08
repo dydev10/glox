@@ -8,14 +8,14 @@ import (
 )
 
 func main() {
-	expression := &ast.Binary[string]{
-		Left: &ast.Unary[string]{
+	expression := &ast.Binary{
+		Left: &ast.Unary{
 			Operator: &lexer.Token{
 				Type:    lexer.MINUS,
 				Lexeme:  "-",
 				Literal: "",
 			},
-			Right: &ast.Literal[string]{
+			Right: &ast.Literal{
 				Value: float64(123),
 			},
 		},
@@ -24,8 +24,8 @@ func main() {
 			Lexeme:  "*",
 			Literal: "",
 		},
-		Right: &ast.Grouping[string]{
-			Expression: &ast.Literal[string]{
+		Right: &ast.Grouping{
+			Expression: &ast.Literal{
 				Value: float64(45.67),
 			},
 		},

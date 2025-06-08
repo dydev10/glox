@@ -2,50 +2,48 @@ package ast
 
 import "github.com/dydev10/glox/lexer"
 
-type Expr[R any] interface {
-	Accept(v Visitor[R]) R
+type Expr interface {
+	Accept(v Visitor[any]) any
 }
 
 type Visitor[R any] interface {
-	VisitBinary(expr *Binary[R]) R
-	VisitGrouping(expr *Grouping[R]) R
-	VisitLiteral(expr *Literal[R]) R
-	VisitUnary(expr *Unary[R]) R
+	VisitBinary(expr *Binary) R
+	VisitGrouping(expr *Grouping) R
+	VisitLiteral(expr *Literal) R
+	VisitUnary(expr *Unary) R
 }
 
-
-type Binary[R any] struct {
-	Left Expr[R]
+type Binary struct {
+	Left     Expr
 	Operator *lexer.Token
-	Right Expr[R]
+	Right    Expr
 }
 
-func (n *Binary[R]) Accept(v Visitor[R]) R {
+func (n *Binary) Accept(v Visitor[any]) any {
 	return v.VisitBinary(n)
 }
 
-type Grouping[R any] struct {
-	Expression Expr[R]
+type Grouping struct {
+	Expression Expr
 }
 
-func (n *Grouping[R]) Accept(v Visitor[R]) R {
+func (n *Grouping) Accept(v Visitor[any]) any {
 	return v.VisitGrouping(n)
 }
 
-type Literal[R any] struct {
+type Literal struct {
 	Value any
 }
 
-func (n *Literal[R]) Accept(v Visitor[R]) R {
+func (n *Literal) Accept(v Visitor[any]) any {
 	return v.VisitLiteral(n)
 }
 
-type Unary[R any] struct {
+type Unary struct {
 	Operator *lexer.Token
-	Right Expr[R]
+	Right    Expr
 }
 
-func (n *Unary[R]) Accept(v Visitor[R]) R {
+func (n *Unary) Accept(v Visitor[any]) any {
 	return v.VisitUnary(n)
 }
-

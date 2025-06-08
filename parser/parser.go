@@ -18,7 +18,7 @@ func NewParser(tokens []*lexer.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() (ast.Expr[string], error) {
+func (p *Parser) Parse() (ast.Expr, error) {
 	return p.expression()
 }
 
@@ -82,11 +82,11 @@ unary          → ( "!" | "-" ) unary | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
 */
 
-func (p *Parser) expression() (ast.Expr[string], error) {
+func (p *Parser) expression() (ast.Expr, error) {
 	return p.equality()
 }
 
-func (p *Parser) equality() (ast.Expr[string], error) {
+func (p *Parser) equality() (ast.Expr, error) {
 	expr, err := p.comparison()
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (p *Parser) equality() (ast.Expr[string], error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &ast.Binary[string]{
+		expr = &ast.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -108,7 +108,7 @@ func (p *Parser) equality() (ast.Expr[string], error) {
 	return expr, nil
 }
 
-func (p *Parser) comparison() (ast.Expr[string], error) {
+func (p *Parser) comparison() (ast.Expr, error) {
 	expr, err := p.term()
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (p *Parser) comparison() (ast.Expr[string], error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &ast.Binary[string]{
+		expr = &ast.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -130,7 +130,7 @@ func (p *Parser) comparison() (ast.Expr[string], error) {
 	return expr, nil
 }
 
-func (p *Parser) term() (ast.Expr[string], error) {
+func (p *Parser) term() (ast.Expr, error) {
 	expr, err := p.factor()
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (p *Parser) term() (ast.Expr[string], error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &ast.Binary[string]{
+		expr = &ast.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -152,7 +152,7 @@ func (p *Parser) term() (ast.Expr[string], error) {
 	return expr, nil
 }
 
-func (p *Parser) factor() (ast.Expr[string], error) {
+func (p *Parser) factor() (ast.Expr, error) {
 	expr, err := p.unary()
 	if err != nil {
 		return nil, err
@@ -164,7 +164,7 @@ func (p *Parser) factor() (ast.Expr[string], error) {
 		if err != nil {
 			return nil, err
 		}
-		expr = &ast.Binary[string]{
+		expr = &ast.Binary{
 			Left:     expr,
 			Operator: operator,
 			Right:    right,
@@ -174,7 +174,7 @@ func (p *Parser) factor() (ast.Expr[string], error) {
 	return expr, nil
 }
 
-func (p *Parser) unary() (ast.Expr[string], error) {
+func (p *Parser) unary() (ast.Expr, error) {
 	if p.match(lexer.BANG, lexer.MINUS) {
 		operator := p.previous()
 		right, err := p.unary()
@@ -182,7 +182,7 @@ func (p *Parser) unary() (ast.Expr[string], error) {
 			return nil, err
 		}
 
-		return &ast.Unary[string]{
+		return &ast.Unary{
 			Operator: operator,
 			Right:    right,
 		}, nil
@@ -191,19 +191,19 @@ func (p *Parser) unary() (ast.Expr[string], error) {
 	return p.primary()
 }
 
-func (p *Parser) primary() (ast.Expr[string], error) {
+func (p *Parser) primary() (ast.Expr, error) {
 	if p.match(lexer.FALSE) {
-		return &ast.Literal[string]{Value: "false"}, nil
+		return &ast.Literal{Value: "false"}, nil
 	}
 	if p.match(lexer.TRUE) {
-		return &ast.Literal[string]{Value: "true"}, nil
+		return &ast.Literal{Value: "true"}, nil
 	}
 	if p.match(lexer.NIL) {
-		return &ast.Literal[string]{}, nil
+		return &ast.Literal{}, nil
 	}
 
 	if p.match(lexer.NUMBER, lexer.STRING) {
-		return &ast.Literal[string]{Value: p.previous().Literal}, nil
+		return &ast.Literal{Value: p.previous().Literal}, nil
 	}
 
 	if p.match(lexer.LEFT_PAREN) {
@@ -215,7 +215,7 @@ func (p *Parser) primary() (ast.Expr[string], error) {
 		if consumeErr != nil {
 			return nil, consumeErr
 		}
-		return &ast.Grouping[string]{
+		return &ast.Grouping{
 			Expression: expr,
 		}, nil
 	}
