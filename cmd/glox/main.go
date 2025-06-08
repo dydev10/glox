@@ -41,7 +41,6 @@ func main() {
 	// parser
 	p := parser.NewParser(tokens)
 	expression, parseError := p.Parse()
-	// hadParseErrors := len(p.Errors) > 0
 	hadParseErrors := false
 	if parseError != nil {
 		hadParseErrors = true
@@ -54,7 +53,7 @@ func main() {
 		}
 	}
 
-	if hadParseErrors {
+	if command == "parse" && hadParseErrors {
 		hadErrors = true
 		for _, parseError := range p.Errors {
 			fmt.Fprintln(os.Stderr, parseError.String())
