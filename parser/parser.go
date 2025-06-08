@@ -233,3 +233,35 @@ func (p *Parser) logError(message string) *ParseError {
 	p.Errors = append(p.Errors, err)
 	return err
 }
+
+// Synchronize on errors
+func (p *Parser) Synchronize() {
+	p.advance()
+
+	for !p.isAtEnd() {
+		if p.previous().Type == lexer.SEMICOLON {
+			return
+		}
+
+		switch p.peek().Type {
+		case lexer.CLASS:
+			fallthrough
+		case lexer.FUN:
+			fallthrough
+		case lexer.VAR:
+			fallthrough
+		case lexer.FOR:
+			fallthrough
+		case lexer.IF:
+			fallthrough
+		case lexer.WHILE:
+			fallthrough
+		case lexer.PRINT:
+			fallthrough
+		case lexer.RETURN:
+			return
+		default:
+			p.advance()
+		}
+	}
+}
