@@ -95,8 +95,6 @@ func runFile(command, filename string) {
 }
 
 func REPL() {
-	defer REPL() // run in loop on returning
-
 	print("\n> ")
 
 	// read input line
@@ -104,6 +102,11 @@ func REPL() {
 	bufScanner.Scan()
 	source := bufScanner.Text()
 	bufScanner = nil
+	if source == "exit" {
+		return
+	} else {
+		defer REPL() // run in loop on returning unless exit input
+	}
 
 	// hadErrors := false
 	//lexer
