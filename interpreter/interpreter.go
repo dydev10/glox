@@ -202,7 +202,7 @@ func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
 		return left.(float64) <= right.(float64), nil
 
 	// equality
-	case lexer.EQUAL:
+	case lexer.EQUAL_EQUAL:
 		return intr.isEqual(left, right), nil
 	case lexer.BANG_EQUAL:
 		return !intr.isEqual(left, right), nil
