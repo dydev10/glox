@@ -33,7 +33,7 @@ func run() {
 }
 
 func runFile(command, filename string) {
-	if command != "tokenize" && command != "parse" {
+	if command != "tokenize" && command != "parse" && command != "eval" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 		os.Exit(1)
 	}
@@ -61,6 +61,15 @@ func runFile(command, filename string) {
 		hadParseErrors = true
 	}
 
+	// interpreter
+	intr := interpreter.NewInterpreter()
+	eval, runtimeErr := intr.Interpret(expression)
+	hadRuntimeErrors := false
+	if runtimeErr != nil {
+		hadRuntimeErrors = true
+	}
+
+	// printing error
 	if hadLexErrors {
 		hadErrors = true
 		for _, lexError := range l.Errors {
@@ -75,6 +84,12 @@ func runFile(command, filename string) {
 		}
 	}
 
+	if command == "eval" && hadRuntimeErrors {
+		hadErrors = true
+		fmt.Fprintln(os.Stderr, runtimeErr)
+	}
+
+	// printing output
 	if command == "tokenize" {
 		for _, v := range tokens {
 			fmt.Println(v.String())
@@ -85,6 +100,11 @@ func runFile(command, filename string) {
 		printer := &ast.Printer{}
 		out := printer.Print(expression)
 		fmt.Printf("%s", out)
+	}
+
+	if command == "eval" && !hadRuntimeErrors {
+		evalOut := intr.PrintEvaluation(eval)
+		fmt.Printf("%s", evalOut)
 	}
 
 	if hadErrors {
