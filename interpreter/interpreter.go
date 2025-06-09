@@ -158,16 +158,16 @@ func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
 	// overloaded arithmetic / string concatenation
 	case lexer.PLUS:
 		// number addition
-		rNum, isNumR := right.(float64)
 		lNum, isNumL := left.(float64)
-		if isNumR && isNumL {
-			return rNum + lNum, nil
+		rNum, isNumR := right.(float64)
+		if isNumL && isNumR {
+			return lNum + rNum, nil
 		}
 		// string concatenation
-		rStr, isStrR := right.(string)
 		lStr, isStrL := left.(string)
-		if isStrR && isStrL {
-			return rStr + lStr, nil
+		rStr, isStrR := right.(string)
+		if isStrL && isStrR {
+			return lStr + rStr, nil
 		}
 		// type match failed, return error
 		return nil, &RuntimeError{
