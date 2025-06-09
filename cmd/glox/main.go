@@ -66,7 +66,7 @@ func runFile(command, filename string) {
 	var runtimeErr error
 	hadRuntimeErrors := false
 	intr := interpreter.NewInterpreter()
-	if !hadParseErrors {
+	if command == "evaluate" && !hadParseErrors {
 		eval, runtimeErr = intr.Interpret(expression)
 	}
 	if runtimeErr != nil {
