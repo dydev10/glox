@@ -13,7 +13,7 @@ import (
 
 func main() {
 	if len(os.Args) == 1 {
-		run()
+		startREPL()
 		os.Exit(0)
 	} else if len(os.Args) == 3 {
 		runFile(os.Args[1], os.Args[2])
@@ -25,7 +25,7 @@ func main() {
 	}
 }
 
-func run() {
+func startREPL() {
 	print("Welcome to glox!\nEnter expression to evaluate.\n")
 	defer os.Exit(0)
 
