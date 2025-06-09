@@ -100,7 +100,7 @@ func (intr *Interpreter) VisitLiteral(expr *ast.Literal) (any, error) {
 }
 
 func (intr *Interpreter) VisitGrouping(expr *ast.Grouping) (any, error) {
-	return intr.evaluate(expr)
+	return intr.evaluate(expr.Expression)
 }
 
 func (intr *Interpreter) VisitUnary(expr *ast.Unary) (any, error) {
