@@ -9,30 +9,31 @@ import (
 type Printer struct {
 }
 
-func (p Printer) VisitBinary(expr *Binary) any {
+func (p Printer) VisitBinary(expr *Binary) (any, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
-func (p Printer) VisitGrouping(expr *Grouping) any {
+func (p Printer) VisitGrouping(expr *Grouping) (any, error) {
 	return p.parenthesize("group", expr.Expression)
 }
 
-func (p Printer) VisitLiteral(expr *Literal) any {
+func (p Printer) VisitLiteral(expr *Literal) (any, error) {
 	if expr.Value == nil {
-		return "nil"
+		return "nil", nil
 	}
-	return lexer.PrintLiteral(expr.Value)
+	return lexer.PrintLiteral(expr.Value), nil
 }
 
-func (p Printer) VisitUnary(expr *Unary) any {
+func (p Printer) VisitUnary(expr *Unary) (any, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
 func (p Printer) Print(expr Expr) string {
-	return expr.Accept(p).(string)
+	val, _ := expr.Accept(p)
+	return val.(string)
 }
 
-func (p Printer) parenthesize(name string, exprs ...Expr) string {
+func (p Printer) parenthesize(name string, exprs ...Expr) (string, error) {
 	var builder strings.Builder
 
 	builder.WriteString("(")
@@ -40,9 +41,10 @@ func (p Printer) parenthesize(name string, exprs ...Expr) string {
 
 	for _, expr := range exprs {
 		builder.WriteString(" ")
-		builder.WriteString(expr.Accept(p).(string))
+		val, _ := expr.Accept(p)
+		builder.WriteString(val.(string))
 	}
 	builder.WriteString(")")
 
-	return builder.String()
+	return builder.String(), nil
 }
