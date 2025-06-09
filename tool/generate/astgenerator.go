@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"os"
 	"strings"
 	"text/template"
+
+	"golang.org/x/tools/imports"
 )
 
 type Field struct {
@@ -82,13 +85,20 @@ func defineAst(outputDir, baseName string, types []string) {
 
 	os.MkdirAll(outputDir, os.ModePerm)
 	filename := outputDir + "/" + strings.ToLower(baseName) + ".go"
-	file, err := os.Create(filename)
+
+	var fileBuf bytes.Buffer
+
+	err := t.Execute(&fileBuf, data)
 	if err != nil {
 		panic(err)
 	}
-	defer file.Close()
 
-	t.Execute(file, data)
+	formatted, err := imports.Process(filename, fileBuf.Bytes(), nil)
+	if err != nil {
+		panic(err)
+	}
+
+	os.WriteFile(filename, formatted, 0644)
 }
 
 func capitalize(s string) string {
