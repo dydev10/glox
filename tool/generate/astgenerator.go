@@ -21,12 +21,12 @@ const astTemplate = `package {{.PackageName}}
 import "github.com/dydev10/glox/lexer"
 
 type {{.BaseName}} interface {
-	Accept(v Visitor[any]) any
+	Accept(v Visitor[any]) (any, error)
 }
 
 type Visitor[R any] interface {
 {{- range .Types }}
-	Visit{{.Class}}(expr *{{.Class}}) R
+	Visit{{.Class}}(expr *{{.Class}}) (R, error)
 {{- end }}
 }
 
@@ -37,7 +37,7 @@ type {{.Class}} struct {
 {{- end }}
 }
 
-func (n *{{.Class}}) Accept(v Visitor[any]) any {
+func (n *{{.Class}}) Accept(v Visitor[any]) (any, error) {
 	return v.Visit{{.Class}}(n)
 }
 {{end}}
