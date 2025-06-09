@@ -21,10 +21,10 @@ const astTemplate = `package {{.PackageName}}
 import "github.com/dydev10/glox/lexer"
 
 type {{.BaseName}} interface {
-	Accept(v Visitor[any]) (any, error)
+	Accept(v Visitor{{.BaseName}}[any]) (any, error)
 }
 
-type Visitor[R any] interface {
+type Visitor{{.BaseName}}[R any] interface {
 {{- range .Types }}
 	Visit{{.Class}}(expr *{{.Class}}) (R, error)
 {{- end }}
@@ -37,7 +37,7 @@ type {{.Class}} struct {
 {{- end }}
 }
 
-func (n *{{.Class}}) Accept(v Visitor[any]) (any, error) {
+func (n *{{.Class}}) Accept(v Visitor{{$.BaseName}}[any]) (any, error) {
 	return v.Visit{{.Class}}(n)
 }
 {{end}}
@@ -104,5 +104,10 @@ func main() {
 		"Grouping : Expr expression",
 		"Literal  : any value",
 		"Unary    : *lexer.Token operator, Expr right",
+	})
+
+	defineAst("ast", "Stmt", []string{
+		"Expression	: Expr expression",
+		"Print      : Expr expression",
 	})
 }
