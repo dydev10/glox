@@ -112,6 +112,11 @@ func (intr *Interpreter) VisitBinary(expr *ast.Binary) any {
 	case lexer.LESS_EQUAL:
 		return left.(float64) <= right.(float64)
 
+	// equality
+	case lexer.EQUAL:
+		return intr.isEqual(left, right)
+	case lexer.BANG_EQUAL:
+		return !intr.isEqual(left, right)
 	}
 
 	// should be unreachable
