@@ -130,13 +130,11 @@ func REPL() {
 		defer REPL() // run in loop on returning unless exit input
 	}
 
-	// hadErrors := false
 	//lexer
 	l := lexer.New(source)
 	tokens := l.Lex()
 	hadLexErrors := len(l.Errors) > 0
 	if hadLexErrors {
-		// hadErrors = hadLexErrors
 		for _, lexError := range l.Errors {
 			fmt.Fprintln(os.Stderr, lexError.String())
 		}
@@ -147,7 +145,6 @@ func REPL() {
 	p := parser.NewParser(tokens)
 	expression, parseError := p.Parse()
 	if parseError != nil {
-		// hadErrors = true
 		for _, parseError := range p.Errors {
 			fmt.Fprintln(os.Stderr, parseError.String())
 		}
@@ -156,12 +153,11 @@ func REPL() {
 
 	// interpreter
 	intr := interpreter.NewInterpreter()
-	eval, evalErr := intr.Interpret(expression)
-	if evalErr != nil {
-		// hadErrors = true
-		println(evalErr)
+	eval, runtimeErr := intr.Interpret(expression)
+	if runtimeErr != nil {
+		fmt.Fprintln(os.Stderr, runtimeErr)
 		return
 	}
 	evalOut := intr.PrintEvaluation(eval)
-	println(evalOut)
+	fmt.Println(evalOut)
 }
