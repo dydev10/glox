@@ -1,6 +1,9 @@
 package interpreter
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/dydev10/glox/ast"
 	"github.com/dydev10/glox/lexer"
 )
@@ -10,6 +13,22 @@ type Interpreter struct {
 
 func (intr *Interpreter) Interpret(expr ast.Expr) (any, error) {
 	return intr.evaluate(expr)
+}
+
+func (intr *Interpreter) PrintEvaluation(val any) string {
+	switch v := val.(type) {
+	case string:
+		return v
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64) // no .0 needed at end
+	case bool:
+		return strconv.FormatBool(v)
+	case nil:
+		return "nil"
+	default:
+		e := fmt.Sprintf("Unknown value type evaluated by interpreter: %v", v)
+		panic(e)
+	}
 }
 
 func (intr *Interpreter) evaluate(expr ast.Expr) (any, error) {
