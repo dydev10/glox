@@ -62,9 +62,13 @@ func runFile(command, filename string) {
 	}
 
 	// interpreter
-	intr := interpreter.NewInterpreter()
-	eval, runtimeErr := intr.Interpret(expression)
+	var eval any
+	var runtimeErr error
 	hadRuntimeErrors := false
+	intr := interpreter.NewInterpreter()
+	if !hadParseErrors {
+		eval, runtimeErr = intr.Interpret(expression)
+	}
 	if runtimeErr != nil {
 		hadRuntimeErrors = true
 	}
