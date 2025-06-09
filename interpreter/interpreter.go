@@ -8,7 +8,11 @@ import (
 type Interpreter struct {
 }
 
-func (intr *Interpreter) evaluate(expr ast.Expr) any {
+func (intr *Interpreter) Interpret(expr ast.Expr) (any, error) {
+	return intr.evaluate(expr)
+}
+
+func (intr *Interpreter) evaluate(expr ast.Expr) (any, error) {
 	return expr.Accept(intr)
 }
 
@@ -50,75 +54,137 @@ func (intr *Interpreter) isEqual(a, b any) bool {
 	return false
 }
 
-func (intr *Interpreter) VisitLiteral(expr *ast.Literal) any {
-	return expr.Value
+func checkNumberOperand(operator *lexer.Token, operand any) error {
+	if _, ok := operand.(float64); ok {
+		return nil
+	}
+
+	return &RuntimeError{token: operator, message: "Operand must be a number."}
 }
 
-func (intr *Interpreter) VisitGrouping(expr *ast.Grouping) any {
+func checkNumberOperands(operator *lexer.Token, left any, right any) error {
+	_, okL := left.(float64)
+	_, okR := right.(float64)
+	if okL && okR {
+		return nil
+	}
+
+	return &RuntimeError{token: operator, message: "Operands must be numbers."}
+}
+
+func (intr *Interpreter) VisitLiteral(expr *ast.Literal) (any, error) {
+	return expr.Value, nil
+}
+
+func (intr *Interpreter) VisitGrouping(expr *ast.Grouping) (any, error) {
 	return intr.evaluate(expr)
 }
 
-func (intr *Interpreter) VisitUnary(expr *ast.Unary) any {
-	right := intr.evaluate(expr.Right)
-	// handle right error
+func (intr *Interpreter) VisitUnary(expr *ast.Unary) (any, error) {
+	right, err := intr.evaluate(expr.Right)
+	if err != nil {
+		return nil, err
+	}
 
 	switch expr.Operator.Type {
 	case lexer.MINUS:
-		return -right.(float64)
+		err := checkNumberOperand(expr.Operator, right)
+		if err != nil {
+			return nil, err
+		}
+		return -right.(float64), nil
 	case lexer.BANG:
-		return !intr.isTruthy(right)
+		return !intr.isTruthy(right), nil
 	}
 
 	// should be unreachable
-	return nil
+	return nil, nil
 }
 
-func (intr *Interpreter) VisitBinary(expr *ast.Binary) any {
-	left := intr.evaluate(expr.Left)
-	right := intr.evaluate(expr.Right)
+func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
+	left, lErr := intr.evaluate(expr.Left)
+	if lErr != nil {
+		return nil, lErr
+	}
+	right, rErr := intr.evaluate(expr.Right)
+	if rErr != nil {
+		return nil, rErr
+	}
 
 	switch expr.Operator.Type {
 	// arithmetic
 	case lexer.MINUS:
-		return left.(float64) - right.(float64)
+		err := checkNumberOperands(expr.Operator, left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left.(float64) - right.(float64), nil
 	case lexer.SLASH:
-		return left.(float64) / right.(float64)
+		err := checkNumberOperands(expr.Operator, left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left.(float64) / right.(float64), nil
 	case lexer.STAR:
-		return left.(float64) * right.(float64)
+		err := checkNumberOperands(expr.Operator, left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left.(float64) * right.(float64), nil
 
-		// overloaded arithmetic / string concatenation
+	// overloaded arithmetic / string concatenation
 	case lexer.PLUS:
 		// number addition
 		rNum, isNumR := right.(float64)
 		lNum, isNumL := left.(float64)
 		if isNumR && isNumL {
-			return rNum + lNum
+			return rNum + lNum, nil
 		}
-
 		// string concatenation
 		rStr, isStrR := right.(string)
 		lStr, isStrL := left.(string)
 		if isStrR && isStrL {
-			return rStr + lStr
+			return rStr + lStr, nil
+		}
+		// type match failed, return error
+		return nil, &RuntimeError{
+			token:   expr.Operator,
+			message: "Operands must be two numbers or two strings.",
 		}
 
 	// comparison
 	case lexer.GREATER:
-		return left.(float64) > right.(float64)
+		err := checkNumberOperands(expr.Operator, left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left.(float64) > right.(float64), nil
 	case lexer.GREATER_EQUAL:
-		return left.(float64) >= right.(float64)
+		err := checkNumberOperands(expr.Operator, left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left.(float64) >= right.(float64), nil
 	case lexer.LESS:
-		return left.(float64) < right.(float64)
+		err := checkNumberOperands(expr.Operator, left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left.(float64) < right.(float64), nil
 	case lexer.LESS_EQUAL:
-		return left.(float64) <= right.(float64)
+		err := checkNumberOperands(expr.Operator, left, right)
+		if err != nil {
+			return nil, err
+		}
+		return left.(float64) <= right.(float64), nil
 
 	// equality
 	case lexer.EQUAL:
-		return intr.isEqual(left, right)
+		return intr.isEqual(left, right), nil
 	case lexer.BANG_EQUAL:
-		return !intr.isEqual(left, right)
+		return !intr.isEqual(left, right), nil
 	}
 
 	// should be unreachable
-	return nil
+	return nil, nil
 }
