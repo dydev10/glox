@@ -11,6 +11,10 @@ import (
 type Interpreter struct {
 }
 
+func NewInterpreter() *Interpreter {
+	return &Interpreter{}
+}
+
 func (intr *Interpreter) Interpret(expr ast.Expr) (any, error) {
 	return intr.evaluate(expr)
 }
