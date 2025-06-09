@@ -1,28 +1,43 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
 	"github.com/dydev10/glox/ast"
+	"github.com/dydev10/glox/interpreter"
 	"github.com/dydev10/glox/lexer"
 	"github.com/dydev10/glox/parser"
 )
 
 func main() {
+	if len(os.Args) == 1 {
+		run()
+		os.Exit(0)
+	} else if len(os.Args) == 3 {
+		runFile(os.Args[1], os.Args[2])
+	}
+
 	if len(os.Args) < 3 {
 		fmt.Fprintln(os.Stderr, "Usage: ./your_program.sh tokenize <filename>")
 		os.Exit(1)
 	}
+}
 
-	command := os.Args[1]
+func run() {
+	print("Welcome to glox!\nEnter expression to evaluate.\n")
+	defer os.Exit(0)
 
+	REPL()
+}
+
+func runFile(command, filename string) {
 	if command != "tokenize" && command != "parse" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 		os.Exit(1)
 	}
 
-	filename := os.Args[2]
 	fileContents, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
@@ -77,4 +92,51 @@ func main() {
 	} else {
 		os.Exit(0)
 	}
+}
+
+func REPL() {
+	defer REPL() // run in loop on returning
+
+	print("\n> ")
+
+	// read input line
+	bufScanner := bufio.NewScanner(os.Stdin)
+	bufScanner.Scan()
+	source := bufScanner.Text()
+	bufScanner = nil
+
+	// hadErrors := false
+	//lexer
+	l := lexer.New(source)
+	tokens := l.Lex()
+	hadLexErrors := len(l.Errors) > 0
+	if hadLexErrors {
+		// hadErrors = hadLexErrors
+		for _, lexError := range l.Errors {
+			fmt.Fprintln(os.Stderr, lexError.String())
+		}
+		return
+	}
+
+	// parser
+	p := parser.NewParser(tokens)
+	expression, parseError := p.Parse()
+	if parseError != nil {
+		// hadErrors = true
+		for _, parseError := range p.Errors {
+			fmt.Fprintln(os.Stderr, parseError.String())
+		}
+		return
+	}
+
+	// interpreter
+	intr := interpreter.NewInterpreter()
+	eval, evalErr := intr.Interpret(expression)
+	if evalErr != nil {
+		// hadErrors = true
+		println(evalErr)
+		return
+	}
+	evalOut := intr.PrintEvaluation(eval)
+	println(evalOut)
 }
