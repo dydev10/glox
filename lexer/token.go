@@ -32,6 +32,8 @@ func PrintLiteral(literal any) string {
 			nStr += ".0"
 		}
 		return nStr
+	case bool:
+		return strconv.FormatBool(l)
 	case nil:
 		return "null"
 	default:

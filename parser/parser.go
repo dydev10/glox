@@ -193,10 +193,10 @@ func (p *Parser) unary() (ast.Expr, error) {
 
 func (p *Parser) primary() (ast.Expr, error) {
 	if p.match(lexer.FALSE) {
-		return &ast.Literal{Value: "false"}, nil
+		return &ast.Literal{Value: false}, nil
 	}
 	if p.match(lexer.TRUE) {
-		return &ast.Literal{Value: "true"}, nil
+		return &ast.Literal{Value: true}, nil
 	}
 	if p.match(lexer.NIL) {
 		return &ast.Literal{}, nil
