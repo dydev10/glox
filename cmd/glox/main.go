@@ -102,7 +102,7 @@ func runFile(command, filename string) {
 		fmt.Printf("%s", out)
 	}
 
-	if command == "eval" && !hadRuntimeErrors {
+	if command == "evaluate" && !hadRuntimeErrors {
 		evalOut := intr.PrintEvaluation(eval)
 		fmt.Printf("%s", evalOut)
 	}
