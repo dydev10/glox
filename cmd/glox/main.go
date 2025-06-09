@@ -33,7 +33,7 @@ func run() {
 }
 
 func runFile(command, filename string) {
-	if command != "tokenize" && command != "parse" && command != "eval" {
+	if command != "tokenize" && command != "parse" && command != "evaluate" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 		os.Exit(1)
 	}
@@ -84,7 +84,7 @@ func runFile(command, filename string) {
 		}
 	}
 
-	if command == "eval" && hadRuntimeErrors {
+	if command == "evaluate" && hadRuntimeErrors {
 		hadErrors = true
 		fmt.Fprintln(os.Stderr, runtimeErr)
 	}
