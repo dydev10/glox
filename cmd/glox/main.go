@@ -107,7 +107,9 @@ func runFile(command, filename string) {
 		fmt.Printf("%s", evalOut)
 	}
 
-	if hadErrors {
+	if hadRuntimeErrors {
+		os.Exit(70)
+	} else if hadErrors {
 		os.Exit(65)
 	} else {
 		os.Exit(0)
