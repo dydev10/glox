@@ -1,0 +1,4 @@
+print ((22 + 11) / (3 * 2) );
+print 3 == 3.0;
+print true == false;
+print "ggs";
