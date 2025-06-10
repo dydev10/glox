@@ -15,11 +15,7 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{}
 }
 
-func (intr *Interpreter) Interpret(expr ast.Expr) (any, error) {
-	return intr.evaluate(expr)
-}
-
-func (intr *Interpreter) PrintEvaluation(val any) string {
+func PrintEvaluation(val any) string {
 	switch v := val.(type) {
 	case string:
 		return v
@@ -33,6 +29,27 @@ func (intr *Interpreter) PrintEvaluation(val any) string {
 		e := fmt.Sprintf("Unknown value type evaluated by interpreter: %v", v)
 		panic(e)
 	}
+}
+
+// main entry point to run glox statements
+func (intr *Interpreter) Interpret(statements []ast.Stmt) error {
+	for _, stmt := range statements {
+		_, err := intr.execute(stmt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// alternate entry point to evaluate single expression without statement
+func (intr *Interpreter) EvaluateExpression(expr ast.Expr) (any, error) {
+	return intr.evaluate(expr)
+}
+
+func (intr *Interpreter) execute(stmt ast.Stmt) (any, error) {
+	return stmt.Accept(intr)
 }
 
 func (intr *Interpreter) evaluate(expr ast.Expr) (any, error) {
@@ -94,6 +111,10 @@ func checkNumberOperands(operator *lexer.Token, left any, right any) error {
 
 	return &RuntimeError{token: operator, message: "Operands must be numbers."}
 }
+
+/*
+* Expr interface implementation
+ */
 
 func (intr *Interpreter) VisitLiteral(expr *ast.Literal) (any, error) {
 	return expr.Value, nil
@@ -209,5 +230,23 @@ func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
 	}
 
 	// should be unreachable
+	return nil, nil
+}
+
+/*
+* Stmt interface implementation
+ */
+
+func (intr *Interpreter) VisitExpression(stmt *ast.Expression) (any, error) {
+	intr.evaluate(stmt.Expression)
+	return nil, nil
+}
+
+func (intr *Interpreter) VisitPrint(stmt *ast.Print) (any, error) {
+	val, err := intr.evaluate(stmt.Expression)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("%s\n", PrintEvaluation(val))
 	return nil, nil
 }

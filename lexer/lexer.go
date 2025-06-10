@@ -32,7 +32,7 @@ type Lexer struct {
 	current int
 	line    int
 	tokens  []*Token
-	Errors  []LexError
+	Errors  []error
 }
 
 func New(source string) *Lexer {
@@ -40,7 +40,7 @@ func New(source string) *Lexer {
 		source: source,
 		line:   1,
 		tokens: []*Token{},
-		Errors: []LexError{},
+		Errors: []error{},
 	}
 }
 

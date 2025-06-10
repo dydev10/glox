@@ -18,7 +18,23 @@ func NewParser(tokens []*lexer.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() (ast.Expr, error) {
+// main entry point to run glox statements
+func (p *Parser) Parse() ([]ast.Stmt, error) {
+	var statements []ast.Stmt
+
+	for !p.isAtEnd() {
+		stmt, err := p.statement()
+		if err != nil {
+			return nil, err
+		}
+		statements = append(statements, stmt)
+	}
+
+	return statements, nil
+}
+
+// alternate entry point to parse single expression without statement
+func (p *Parser) ParseExpression() (ast.Expr, error) {
 	return p.expression()
 }
 
@@ -71,16 +87,18 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 	return nil, err
 }
 
-/*
-Language grammar rule functions:
-expression     → equality ;
-equality       → comparison ( ( "!=" | "==" ) comparison )* ;
-comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-term           → factor ( ( "-" | "+" ) factor )* ;
-factor         → unary ( ( "/" | "*" ) unary )* ;
-unary          → ( "!" | "-" ) unary | primary ;
-primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
-*/
+/**
+* expression parsing
+*
+* Language grammar rule functions:
+* expression     → equality ;
+* equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+* comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+* term           → factor ( ( "-" | "+" ) factor )* ;
+* factor         → unary ( ( "/" | "*" ) unary )* ;
+* unary          → ( "!" | "-" ) unary | primary ;
+* primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+ */
 
 func (p *Parser) expression() (ast.Expr, error) {
 	return p.equality()
@@ -264,4 +282,44 @@ func (p *Parser) Synchronize() {
 			p.advance()
 		}
 	}
+}
+
+/**
+* statement parsing
+ */
+
+func (p *Parser) printStatement() (ast.Stmt, error) {
+	value, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, consumeErr := p.consume(lexer.SEMICOLON, "Expect ';' after value.")
+	if consumeErr != nil {
+		return nil, consumeErr
+	}
+
+	return &ast.Print{Expression: value}, nil
+}
+
+func (p *Parser) expressionStatement() (ast.Stmt, error) {
+	expr, err := p.expression()
+	if err != nil {
+		return nil, err
+	}
+
+	_, consumeErr := p.consume(lexer.SEMICOLON, "Expect ';' after expression.")
+	if consumeErr != nil {
+		return nil, consumeErr
+	}
+
+	return &ast.Expression{Expression: expr}, nil
+}
+
+func (p *Parser) statement() (ast.Stmt, error) {
+	if p.match(lexer.PRINT) {
+		return p.printStatement()
+	}
+
+	return p.expressionStatement()
 }

@@ -4,11 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
-	"github.com/dydev10/glox/ast"
-	"github.com/dydev10/glox/interpreter"
-	"github.com/dydev10/glox/lexer"
-	"github.com/dydev10/glox/parser"
+	"github.com/dydev10/glox/glox"
 )
 
 func main() {
@@ -33,7 +31,7 @@ func startREPL() {
 }
 
 func runFile(command, filename string) {
-	if command != "tokenize" && command != "parse" && command != "evaluate" {
+	if command != "tokenize" && command != "parse" && command != "evaluate" && command != "run" {
 		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", command)
 		os.Exit(1)
 	}
@@ -44,76 +42,23 @@ func runFile(command, filename string) {
 		os.Exit(1)
 	}
 
-	/*
-	* Main Lexer Code
-	 */
-	hadErrors := false
-	//lexer
-	l := lexer.New(string(fileContents))
-	tokens := l.Lex()
-	hadLexErrors := len(l.Errors) > 0
+	glox := glox.NewGlox(command, string(fileContents))
+	glox.Tokenize()
 
-	// parser
-	p := parser.NewParser(tokens)
-	expression, parseError := p.Parse()
-	hadParseErrors := false
-	if parseError != nil {
-		hadParseErrors = true
+	if command == "parse" || command == "evaluate" {
+		glox.RunExpression()
 	}
 
-	// interpreter
-	var eval any
-	var runtimeErr error
-	hadRuntimeErrors := false
-	intr := interpreter.NewInterpreter()
-	if command == "evaluate" && !hadParseErrors {
-		eval, runtimeErr = intr.Interpret(expression)
-	}
-	if runtimeErr != nil {
-		hadRuntimeErrors = true
+	if command == "run" {
+		glox.RunStatements()
 	}
 
-	// printing error
-	if hadLexErrors {
-		hadErrors = true
-		for _, lexError := range l.Errors {
-			fmt.Fprintln(os.Stderr, lexError.String())
-		}
-	}
+	glox.PrintErrors()
+	glox.PrintResult()
 
-	if command == "parse" && hadParseErrors {
-		hadErrors = true
-		for _, parseError := range p.Errors {
-			fmt.Fprintln(os.Stderr, parseError.String())
-		}
-	}
-
-	if command == "evaluate" && hadRuntimeErrors {
-		hadErrors = true
-		fmt.Fprintln(os.Stderr, runtimeErr)
-	}
-
-	// printing output
-	if command == "tokenize" {
-		for _, v := range tokens {
-			fmt.Println(v.String())
-		}
-	}
-
-	if command == "parse" && !hadParseErrors {
-		printer := &ast.Printer{}
-		out := printer.Print(expression)
-		fmt.Printf("%s", out)
-	}
-
-	if command == "evaluate" && !hadRuntimeErrors {
-		evalOut := intr.PrintEvaluation(eval)
-		fmt.Printf("%s", evalOut)
-	}
-
-	if hadRuntimeErrors {
+	if glox.HadRuntimeError {
 		os.Exit(70)
-	} else if hadErrors {
+	} else if glox.HadSyntaxError {
 		os.Exit(65)
 	} else {
 		os.Exit(0)
@@ -126,7 +71,7 @@ func REPL() {
 	// read input line
 	bufScanner := bufio.NewScanner(os.Stdin)
 	bufScanner.Scan()
-	source := bufScanner.Text()
+	source := strings.TrimSpace(bufScanner.Text())
 	bufScanner = nil
 	if source == "exit" {
 		return
@@ -134,34 +79,22 @@ func REPL() {
 		defer REPL() // run in loop on returning unless exit input
 	}
 
-	//lexer
-	l := lexer.New(source)
-	tokens := l.Lex()
-	hadLexErrors := len(l.Errors) > 0
-	if hadLexErrors {
-		for _, lexError := range l.Errors {
-			fmt.Fprintln(os.Stderr, lexError.String())
-		}
-		return
+	var command string
+	if strings.HasSuffix(source, ";") {
+		command = "run"
+	} else {
+		command = "evaluate"
 	}
 
-	// parser
-	p := parser.NewParser(tokens)
-	expression, parseError := p.Parse()
-	if parseError != nil {
-		for _, parseError := range p.Errors {
-			fmt.Fprintln(os.Stderr, parseError.String())
-		}
-		return
+	glox := glox.NewGlox(command, source)
+	glox.Tokenize()
+
+	if command == "run" {
+		glox.RunStatements()
+	} else {
+		glox.RunExpression()
 	}
 
-	// interpreter
-	intr := interpreter.NewInterpreter()
-	eval, runtimeErr := intr.Interpret(expression)
-	if runtimeErr != nil {
-		fmt.Fprintln(os.Stderr, runtimeErr)
-		return
-	}
-	evalOut := intr.PrintEvaluation(eval)
-	fmt.Println(evalOut)
+	glox.PrintErrors()
+	glox.PrintResult()
 }

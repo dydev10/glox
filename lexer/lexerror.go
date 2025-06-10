@@ -10,3 +10,7 @@ type LexError struct {
 func (le *LexError) String() string {
 	return fmt.Sprintf("[line %d] Error: %s", le.line, le.message)
 }
+
+func (le LexError) Error() string {
+	return fmt.Sprintf("[line %d] Error: %s", le.line, le.message)
+}
