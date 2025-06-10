@@ -238,8 +238,8 @@ func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
  */
 
 func (intr *Interpreter) VisitExpression(stmt *ast.Expression) (any, error) {
-	intr.evaluate(stmt.Expression)
-	return nil, nil
+	_, err := intr.evaluate(stmt.Expression)
+	return nil, err
 }
 
 func (intr *Interpreter) VisitPrint(stmt *ast.Print) (any, error) {
