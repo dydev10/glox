@@ -11,6 +11,7 @@ type VisitorExpr[R any] interface {
 	VisitGrouping(expr *Grouping) (R, error)
 	VisitLiteral(expr *Literal) (R, error)
 	VisitUnary(expr *Unary) (R, error)
+	VisitVariable(expr *Variable) (R, error)
 }
 
 type Binary struct {
@@ -46,4 +47,12 @@ type Unary struct {
 
 func (n *Unary) Accept(v VisitorExpr[any]) (any, error) {
 	return v.VisitUnary(n)
+}
+
+type Variable struct {
+	Name *lexer.Token
+}
+
+func (n *Variable) Accept(v VisitorExpr[any]) (any, error) {
+	return v.VisitVariable(n)
 }

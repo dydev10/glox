@@ -28,6 +28,11 @@ func (p Printer) VisitUnary(expr *Unary) (any, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
+func (p Printer) VisitVariable(expr *Variable) (any, error) {
+	// TODO: check if this works
+	return "var " + expr.Name.Lexeme, nil
+}
+
 func (p Printer) Print(expr Expr) string {
 	val, _ := expr.Accept(p)
 	return val.(string)

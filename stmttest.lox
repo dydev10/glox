@@ -1,4 +1,3 @@
-print ((22 + 11) / (3 * 2) );
-print 3 == 3.0;
-print true == false;
-print "ggs";
+var a = 1;
+var b = 32;
+print a + b;

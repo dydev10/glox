@@ -1,5 +1,7 @@
 package ast
 
+import "github.com/dydev10/glox/lexer"
+
 type Stmt interface {
 	Accept(v VisitorStmt[any]) (any, error)
 }
@@ -7,6 +9,7 @@ type Stmt interface {
 type VisitorStmt[R any] interface {
 	VisitExpression(expr *Expression) (R, error)
 	VisitPrint(expr *Print) (R, error)
+	VisitVar(expr *Var) (R, error)
 }
 
 type Expression struct {
@@ -23,4 +26,13 @@ type Print struct {
 
 func (n *Print) Accept(v VisitorStmt[any]) (any, error) {
 	return v.VisitPrint(n)
+}
+
+type Var struct {
+	Name        *lexer.Token
+	Initializer Expr
+}
+
+func (n *Var) Accept(v VisitorStmt[any]) (any, error) {
+	return v.VisitVar(n)
 }

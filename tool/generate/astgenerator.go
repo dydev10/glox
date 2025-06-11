@@ -114,10 +114,12 @@ func main() {
 		"Grouping : Expr expression",
 		"Literal  : any value",
 		"Unary    : *lexer.Token operator, Expr right",
+		"Variable : *lexer.Token name",
 	})
 
 	defineAst("ast", "Stmt", []string{
 		"Expression	: Expr expression",
 		"Print      : Expr expression",
+		"Var        : *lexer.Token name, Expr initializer",
 	})
 }

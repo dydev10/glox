@@ -9,10 +9,13 @@ import (
 )
 
 type Interpreter struct {
+	environment *Environment
 }
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{}
+	return &Interpreter{
+		environment: NewEnvironment(),
+	}
 }
 
 func PrintEvaluation(val any) string {
@@ -145,6 +148,10 @@ func (intr *Interpreter) VisitUnary(expr *ast.Unary) (any, error) {
 	return nil, nil
 }
 
+func (intr *Interpreter) VisitVariable(expr *ast.Variable) (any, error) {
+	return intr.environment.get(expr.Name)
+}
+
 func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
 	left, lErr := intr.evaluate(expr.Left)
 	if lErr != nil {
@@ -249,4 +256,16 @@ func (intr *Interpreter) VisitPrint(stmt *ast.Print) (any, error) {
 	}
 	fmt.Printf("%s\n", PrintEvaluation(val))
 	return nil, nil
+}
+
+func (intr *Interpreter) VisitVar(stmt *ast.Var) (any, error) {
+	var value any
+	var err error
+
+	if stmt.Initializer != nil {
+		value, err = intr.evaluate(stmt.Initializer)
+	}
+
+	intr.environment.define(stmt.Name.Lexeme, value)
+	return nil, err
 }

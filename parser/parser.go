@@ -23,8 +23,11 @@ func (p *Parser) Parse() ([]ast.Stmt, error) {
 	var statements []ast.Stmt
 
 	for !p.isAtEnd() {
-		stmt, err := p.statement()
+		stmt, err := p.declaration()
 		if err != nil {
+			// TODO: probably not return here, return error after loop along with result, because synchronize is used now
+			// or call synchronize() here instead of inside declaration??
+			// p.synchronize() // remove return err, just sync on error
 			return nil, err
 		}
 		statements = append(statements, stmt)
@@ -90,14 +93,14 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 /**
 * expression parsing
 *
-* Language grammar rule functions:
+* Language grammar expression rule functions:
 * expression     → equality ;
 * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 * term           → factor ( ( "-" | "+" ) factor )* ;
 * factor         → unary ( ( "/" | "*" ) unary )* ;
 * unary          → ( "!" | "-" ) unary | primary ;
-* primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+* primary        → "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")"| IDENTIFIER ;
  */
 
 func (p *Parser) expression() (ast.Expr, error) {
@@ -219,11 +222,12 @@ func (p *Parser) primary() (ast.Expr, error) {
 	if p.match(lexer.NIL) {
 		return &ast.Literal{}, nil
 	}
-
 	if p.match(lexer.NUMBER, lexer.STRING) {
 		return &ast.Literal{Value: p.previous().Literal}, nil
 	}
-
+	if p.match(lexer.IDENTIFIER) {
+		return &ast.Variable{Name: p.previous()}, nil
+	}
 	if p.match(lexer.LEFT_PAREN) {
 		expr, err := p.expression()
 		if err != nil {
@@ -252,8 +256,8 @@ func (p *Parser) logError(message string) *ParseError {
 	return err
 }
 
-// Synchronize on errors
-func (p *Parser) Synchronize() {
+// synchronize on parsing errors
+func (p *Parser) synchronize() {
 	p.advance()
 
 	for !p.isAtEnd() {
@@ -285,8 +289,55 @@ func (p *Parser) Synchronize() {
 }
 
 /**
-* statement parsing
+* statements parsing
+*
+* Language grammar statements rule functions:
+*	program        → declaration* EOF ;
+*	declaration    → varDecl | statement ;
+*	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+*	statement      → exprStmt | printStmt ;
+*	exprStmt       → expression ";" ;
+*	printStmt      → "print" expression ";" ;
  */
+
+func (p *Parser) declaration() (ast.Stmt, error) {
+	if p.match(lexer.VAR) {
+		return p.varDeclaration()
+	}
+
+	return p.statement()
+}
+
+func (p *Parser) statement() (ast.Stmt, error) {
+	if p.match(lexer.PRINT) {
+		return p.printStatement()
+	}
+
+	return p.expressionStatement()
+}
+
+func (p *Parser) varDeclaration() (ast.Stmt, error) {
+	name, nameErr := p.consume(lexer.IDENTIFIER, "Expect variable name.")
+	if nameErr != nil {
+		return nil, nameErr
+	}
+
+	var initializer ast.Expr
+	var initializerErr error
+	if p.match(lexer.EQUAL) {
+		initializer, initializerErr = p.expression()
+		if initializerErr != nil {
+			return nil, initializerErr
+		}
+	}
+
+	_, semiErr := p.consume(lexer.SEMICOLON, "Expect ';' after variable declaration.")
+	if semiErr != nil {
+		return nil, semiErr
+	}
+
+	return &ast.Var{Name: name, Initializer: initializer}, nil
+}
 
 func (p *Parser) printStatement() (ast.Stmt, error) {
 	value, err := p.expression()
@@ -294,9 +345,9 @@ func (p *Parser) printStatement() (ast.Stmt, error) {
 		return nil, err
 	}
 
-	_, consumeErr := p.consume(lexer.SEMICOLON, "Expect ';' after value.")
-	if consumeErr != nil {
-		return nil, consumeErr
+	_, semiErr := p.consume(lexer.SEMICOLON, "Expect ';' after value.")
+	if semiErr != nil {
+		return nil, semiErr
 	}
 
 	return &ast.Print{Expression: value}, nil
@@ -308,18 +359,10 @@ func (p *Parser) expressionStatement() (ast.Stmt, error) {
 		return nil, err
 	}
 
-	_, consumeErr := p.consume(lexer.SEMICOLON, "Expect ';' after expression.")
-	if consumeErr != nil {
-		return nil, consumeErr
+	_, semiErr := p.consume(lexer.SEMICOLON, "Expect ';' after expression.")
+	if semiErr != nil {
+		return nil, semiErr
 	}
 
 	return &ast.Expression{Expression: expr}, nil
-}
-
-func (p *Parser) statement() (ast.Stmt, error) {
-	if p.match(lexer.PRINT) {
-		return p.printStatement()
-	}
-
-	return p.expressionStatement()
 }
