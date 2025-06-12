@@ -25,7 +25,20 @@ func (env *Environment) get(name *lexer.Token) (any, error) {
 		return val, nil
 	} else {
 		return nil, &RuntimeError{
-			token: name, message: fmt.Sprintf("Undefined variable %s.", name.Lexeme),
+			token:   name,
+			message: fmt.Sprintf("Undefined variable %s.", name.Lexeme),
 		}
+	}
+}
+
+func (env *Environment) assign(name *lexer.Token, value any) error {
+	if _, ok := env.values[name.Lexeme]; ok {
+		env.values[name.Lexeme] = value
+		return nil
+	}
+
+	return &RuntimeError{
+		token:   name,
+		message: fmt.Sprintf("Undefined variable %s.", name.Lexeme),
 	}
 }

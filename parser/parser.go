@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/dydev10/glox/ast"
 	"github.com/dydev10/glox/lexer"
 )
@@ -94,7 +96,8 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 * expression parsing
 *
 * Language grammar expression rule functions:
-* expression     → equality ;
+* expression     → assignment ;
+*	assignment     → IDENTIFIER "=" assignment | equality ;
 * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -104,7 +107,37 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
  */
 
 func (p *Parser) expression() (ast.Expr, error) {
-	return p.equality()
+	return p.assignment()
+}
+
+func (p *Parser) assignment() (ast.Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	if p.match(lexer.EQUAL) {
+		equals := p.previous()
+		value, valueErr := p.assignment()
+		if valueErr != nil {
+			return nil, valueErr
+		}
+
+		if varExpr, ok := expr.(*ast.Variable); ok {
+			return &ast.Assign{
+				Name:  varExpr.Name,
+				Value: value,
+			}, nil
+		} else {
+			// log invalid assignment target error, but don't return
+			// TODO: log this error instead of just printing here
+			assignTargetErr := &ParseError{token: equals, message: "Invalid assignment target."}
+			fmt.Println(assignTargetErr)
+		}
+
+	}
+
+	return expr, nil
 }
 
 func (p *Parser) equality() (ast.Expr, error) {

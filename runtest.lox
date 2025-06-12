@@ -1,4 +1,10 @@
 var a = 1;
 var b = 5;
 var c = a + b;
-print c * 2;
+
+print b;
+print c;
+print b = c * 2;
+print b;
+c = 10;
+print c;

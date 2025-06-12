@@ -9,6 +9,11 @@ import (
 type Printer struct {
 }
 
+func (p Printer) VisitAssign(expr *Assign) (any, error) {
+	// TODO: check if this works fine?? probably not
+	return p.parenthesize("=", expr, expr.Value)
+}
+
 func (p Printer) VisitBinary(expr *Binary) (any, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }

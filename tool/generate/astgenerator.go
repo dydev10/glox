@@ -110,6 +110,7 @@ func capitalize(s string) string {
 
 func main() {
 	defineAst("ast", "Expr", []string{
+		"Assign   : *lexer.Token name, Expr value",
 		"Binary   : Expr left, *lexer.Token operator, Expr right",
 		"Grouping : Expr expression",
 		"Literal  : any value",

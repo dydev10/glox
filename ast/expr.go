@@ -7,11 +7,21 @@ type Expr interface {
 }
 
 type VisitorExpr[R any] interface {
+	VisitAssign(expr *Assign) (R, error)
 	VisitBinary(expr *Binary) (R, error)
 	VisitGrouping(expr *Grouping) (R, error)
 	VisitLiteral(expr *Literal) (R, error)
 	VisitUnary(expr *Unary) (R, error)
 	VisitVariable(expr *Variable) (R, error)
+}
+
+type Assign struct {
+	Name  *lexer.Token
+	Value Expr
+}
+
+func (n *Assign) Accept(v VisitorExpr[any]) (any, error) {
+	return v.VisitAssign(n)
 }
 
 type Binary struct {

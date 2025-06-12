@@ -240,6 +240,20 @@ func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
 	return nil, nil
 }
 
+func (intr *Interpreter) VisitAssign(expr *ast.Assign) (any, error) {
+	value, err := intr.evaluate(expr.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	assignErr := intr.environment.assign(expr.Name, value)
+	if assignErr != nil {
+		return nil, assignErr
+	}
+
+	return value, nil
+}
+
 /*
 * Stmt interface implementation
  */
