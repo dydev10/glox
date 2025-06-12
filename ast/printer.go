@@ -29,8 +29,7 @@ func (p Printer) VisitUnary(expr *Unary) (any, error) {
 }
 
 func (p Printer) VisitVariable(expr *Variable) (any, error) {
-	// TODO: check if this works
-	return "var " + expr.Name.Lexeme, nil
+	return expr.Name.Lexeme, nil
 }
 
 func (p Printer) Print(expr Expr) string {
