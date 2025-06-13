@@ -14,7 +14,7 @@ type Interpreter struct {
 
 func NewInterpreter() *Interpreter {
 	return &Interpreter{
-		environment: NewEnvironment(),
+		environment: NewEnvironment(nil),
 	}
 }
 
@@ -53,6 +53,24 @@ func (intr *Interpreter) EvaluateExpression(expr ast.Expr) (any, error) {
 
 func (intr *Interpreter) execute(stmt ast.Stmt) (any, error) {
 	return stmt.Accept(intr)
+}
+
+func (intr *Interpreter) executeBlock(statements []ast.Stmt, env *Environment) error {
+	prevEnv := intr.environment
+	intr.environment = env
+
+	for _, stmt := range statements {
+		_, err := intr.execute(stmt)
+		if err != nil {
+			// restore original environment on error
+			intr.environment = prevEnv
+			return err
+		}
+	}
+
+	// restore original environment before returning
+	intr.environment = prevEnv
+	return nil
 }
 
 func (intr *Interpreter) evaluate(expr ast.Expr) (any, error) {
@@ -257,6 +275,11 @@ func (intr *Interpreter) VisitAssign(expr *ast.Assign) (any, error) {
 /*
 * Stmt interface implementation
  */
+
+func (intr *Interpreter) VisitBlock(stmt *ast.Block) (any, error) {
+	err := intr.executeBlock(stmt.Statements, NewEnvironment(intr.environment))
+	return nil, err
+}
 
 func (intr *Interpreter) VisitExpression(stmt *ast.Expression) (any, error) {
 	_, err := intr.evaluate(stmt.Expression)

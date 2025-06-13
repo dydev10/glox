@@ -27,7 +27,7 @@ func (p *Parser) Parse() ([]ast.Stmt, error) {
 	for !p.isAtEnd() {
 		stmt, err := p.declaration()
 		if err != nil {
-			// TODO: probably not return here, return error after loop along with result, because synchronize is used now
+			// TODO: probably not return here, return error after loop along with result, because synchronize should be used now
 			// or call synchronize() here instead of inside declaration??
 			// p.synchronize() // remove return err, just sync on error
 			return nil, err
@@ -328,7 +328,8 @@ func (p *Parser) synchronize() {
 *	program        → declaration* EOF ;
 *	declaration    → varDecl | statement ;
 *	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
-*	statement      → exprStmt | printStmt ;
+*	statement      → exprStmt | printStmt | block;
+* block          → "{" declaration* "}" ;
 *	exprStmt       → expression ";" ;
 *	printStmt      → "print" expression ";" ;
  */
@@ -344,6 +345,14 @@ func (p *Parser) declaration() (ast.Stmt, error) {
 func (p *Parser) statement() (ast.Stmt, error) {
 	if p.match(lexer.PRINT) {
 		return p.printStatement()
+	}
+
+	if p.match(lexer.LEFT_BRACE) {
+		statements, err := p.block()
+		if err != nil {
+			return nil, err
+		}
+		return &ast.Block{Statements: statements}, nil
 	}
 
 	return p.expressionStatement()
@@ -398,4 +407,23 @@ func (p *Parser) expressionStatement() (ast.Stmt, error) {
 	}
 
 	return &ast.Expression{Expression: expr}, nil
+}
+
+func (p *Parser) block() ([]ast.Stmt, error) {
+	statements := []ast.Stmt{}
+
+	for !p.check(lexer.RIGHT_BRACE) && !p.isAtEnd() {
+		stmt, err := p.declaration()
+		if err != nil {
+			return nil, err
+		}
+		statements = append(statements, stmt)
+	}
+
+	_, err := p.consume(lexer.RIGHT_BRACE, "Expect '}' after block.")
+	if err != nil {
+		return nil, err
+	}
+
+	return statements, nil
 }

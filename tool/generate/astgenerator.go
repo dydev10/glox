@@ -119,6 +119,7 @@ func main() {
 	})
 
 	defineAst("ast", "Stmt", []string{
+		"Block			: []Stmt statements",
 		"Expression	: Expr expression",
 		"Print      : Expr expression",
 		"Var        : *lexer.Token name, Expr initializer",
