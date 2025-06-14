@@ -121,6 +121,7 @@ func main() {
 	defineAst("ast", "Stmt", []string{
 		"Block			: []Stmt statements",
 		"Expression	: Expr expression",
+		"If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
 		"Print      : Expr expression",
 		"Var        : *lexer.Token name, Expr initializer",
 	})

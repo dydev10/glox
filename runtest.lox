@@ -17,3 +17,13 @@ var c = "global c";
 print a;
 print b;
 print c;
+
+
+
+if (true){
+  print "outer if";
+  
+  if (false) print "inner if";
+  else print "inner else";
+}
+else print "outer else";

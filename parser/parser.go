@@ -329,6 +329,7 @@ func (p *Parser) synchronize() {
 *	declaration    → varDecl | statement ;
 *	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 *	statement      → exprStmt | printStmt | block;
+* ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 * block          → "{" declaration* "}" ;
 *	exprStmt       → expression ";" ;
 *	printStmt      → "print" expression ";" ;
@@ -347,6 +348,10 @@ func (p *Parser) statement() (ast.Stmt, error) {
 		return p.printStatement()
 	}
 
+	if p.match(lexer.IF) {
+		return p.ifStmt()
+	}
+
 	if p.match(lexer.LEFT_BRACE) {
 		statements, err := p.block()
 		if err != nil {
@@ -356,6 +361,43 @@ func (p *Parser) statement() (ast.Stmt, error) {
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser) ifStmt() (ast.Stmt, error) {
+	_, lParenErr := p.consume(lexer.LEFT_PAREN, "Expect '(' after 'if'.")
+	if lParenErr != nil {
+		return nil, lParenErr
+	}
+
+	condition, condErr := p.expression()
+	if condErr != nil {
+		return nil, condErr
+	}
+
+	_, rParenErr := p.consume(lexer.RIGHT_PAREN, "Expect ')' after if condition.")
+	if rParenErr != nil {
+		return nil, rParenErr
+	}
+
+	thenBranch, thenErr := p.statement()
+	if thenErr != nil {
+		return nil, thenErr
+	}
+
+	var elseBranch ast.Stmt
+	var elseErr error
+	if p.match(lexer.ELSE) {
+		elseBranch, elseErr = p.statement()
+		if elseErr != nil {
+			return nil, elseErr
+		}
+	}
+
+	return &ast.If{
+		Condition:  condition,
+		ThenBranch: thenBranch,
+		ElseBranch: elseBranch,
+	}, nil
 }
 
 func (p *Parser) varDeclaration() (ast.Stmt, error) {
