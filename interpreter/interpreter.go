@@ -141,6 +141,26 @@ func (intr *Interpreter) VisitLiteral(expr *ast.Literal) (any, error) {
 	return expr.Value, nil
 }
 
+func (intr *Interpreter) VisitLogical(expr *ast.Logical) (any, error) {
+	left, err := intr.evaluate(expr.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	if expr.Operator.Type == lexer.OR {
+		if intr.isTruthy(left) {
+			return left, nil
+		}
+	}
+	if expr.Operator.Type == lexer.AND {
+		if !intr.isTruthy(left) {
+			return left, nil
+		}
+	}
+
+	return intr.evaluate(expr.Right)
+}
+
 func (intr *Interpreter) VisitGrouping(expr *ast.Grouping) (any, error) {
 	return intr.evaluate(expr.Expression)
 }

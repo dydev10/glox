@@ -1,1 +1,1 @@
-((-23 + 45 <= foo * (true + false + nil)))
+((-23 + 45 <= foo * (false and true or false + nil)))

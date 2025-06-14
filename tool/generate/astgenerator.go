@@ -114,6 +114,7 @@ func main() {
 		"Binary   : Expr left, *lexer.Token operator, Expr right",
 		"Grouping : Expr expression",
 		"Literal  : any value",
+		"Logical  : Expr left, *lexer.Token operator, Expr right",
 		"Unary    : *lexer.Token operator, Expr right",
 		"Variable : *lexer.Token name",
 	})

@@ -97,7 +97,9 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 *
 * Language grammar expression rule functions:
 * expression     → assignment ;
-*	assignment     → IDENTIFIER "=" assignment | equality ;
+*	assignment     → IDENTIFIER "=" assignment | logic_or;
+* logic_or       → logic_and ( "or" logic_and )* ;
+* logic_and      → equality ( "and" equality )* ;
 * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 * term           → factor ( ( "-" | "+" ) factor )* ;
@@ -111,7 +113,7 @@ func (p *Parser) expression() (ast.Expr, error) {
 }
 
 func (p *Parser) assignment() (ast.Expr, error) {
-	expr, err := p.equality()
+	expr, err := p.or()
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +137,54 @@ func (p *Parser) assignment() (ast.Expr, error) {
 			fmt.Println(assignTargetErr)
 		}
 
+	}
+
+	return expr, nil
+}
+
+func (p *Parser) or() (ast.Expr, error) {
+	expr, err := p.and()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(lexer.OR) {
+		operator := p.previous()
+
+		right, err := p.and()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = &ast.Logical{
+			Left:     expr,
+			Right:    right,
+			Operator: operator,
+		}
+	}
+
+	return expr, nil
+}
+
+func (p *Parser) and() (ast.Expr, error) {
+	expr, err := p.equality()
+	if err != nil {
+		return nil, err
+	}
+
+	for p.match(lexer.AND) {
+		operator := p.previous()
+
+		right, err := p.equality()
+		if err != nil {
+			return nil, err
+		}
+
+		expr = &ast.Logical{
+			Left:     expr,
+			Right:    right,
+			Operator: operator,
+		}
 	}
 
 	return expr, nil

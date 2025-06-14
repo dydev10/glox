@@ -29,6 +29,10 @@ func (p Printer) VisitLiteral(expr *Literal) (any, error) {
 	return lexer.PrintLiteral(expr.Value), nil
 }
 
+func (p Printer) VisitLogical(expr *Logical) (any, error) {
+	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
+}
+
 func (p Printer) VisitUnary(expr *Unary) (any, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
