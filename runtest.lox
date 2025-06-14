@@ -1,3 +1,4 @@
+// declarations and scoping
 var a = "global a";
 var b = "global b";
 var c = "global c";
@@ -19,7 +20,7 @@ print b;
 print c;
 
 
-
+// if-else
 if (true or false){
   print "outer if";
   
@@ -28,8 +29,10 @@ if (true or false){
 }
 else print "outer else";
 
+
+// loops
 var i = 0;
-while (i < 10) {
+while (i < 5) {
   print i;
   i = i + 1;
 }
