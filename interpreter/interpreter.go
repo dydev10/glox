@@ -342,3 +342,24 @@ func (intr *Interpreter) VisitVar(stmt *ast.Var) (any, error) {
 	intr.environment.define(stmt.Name.Lexeme, value)
 	return nil, err
 }
+
+func (intr *Interpreter) VisitWhile(stmt *ast.While) (any, error) {
+	cond, condErr := intr.evaluate(stmt.Condition)
+	if condErr != nil {
+		return nil, condErr
+	}
+
+	for intr.isTruthy(cond) {
+		_, err := intr.execute(stmt.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		cond, condErr = intr.evaluate(stmt.Condition)
+		if condErr != nil {
+			return nil, condErr
+		}
+	}
+
+	return nil, nil
+}

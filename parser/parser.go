@@ -378,7 +378,8 @@ func (p *Parser) synchronize() {
 *	program        → declaration* EOF ;
 *	declaration    → varDecl | statement ;
 *	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
-*	statement      → exprStmt | printStmt | block;
+*	statement      → exprStmt | ifStm | printStmt | whileStmt | block;
+* whileStmt      → "while" "(" expression ")" statement ;
 * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 * block          → "{" declaration* "}" ;
 *	exprStmt       → expression ";" ;
@@ -394,12 +395,16 @@ func (p *Parser) declaration() (ast.Stmt, error) {
 }
 
 func (p *Parser) statement() (ast.Stmt, error) {
+	if p.match(lexer.IF) {
+		return p.ifStmt()
+	}
+
 	if p.match(lexer.PRINT) {
 		return p.printStatement()
 	}
 
-	if p.match(lexer.IF) {
-		return p.ifStmt()
+	if p.match(lexer.WHILE) {
+		return p.whileStatement()
 	}
 
 	if p.match(lexer.LEFT_BRACE) {
@@ -471,6 +476,33 @@ func (p *Parser) varDeclaration() (ast.Stmt, error) {
 	}
 
 	return &ast.Var{Name: name, Initializer: initializer}, nil
+}
+
+func (p *Parser) whileStatement() (ast.Stmt, error) {
+	_, lParenErr := p.consume(lexer.LEFT_PAREN, "Expect '(' after 'while'.")
+	if lParenErr != nil {
+		return nil, lParenErr
+	}
+
+	cond, condErr := p.expression()
+	if condErr != nil {
+		return nil, condErr
+	}
+
+	_, rParenErr := p.consume(lexer.RIGHT_PAREN, "Expect ')' after condition.")
+	if rParenErr != nil {
+		return nil, rParenErr
+	}
+
+	body, bodyErr := p.statement()
+	if bodyErr != nil {
+		return nil, bodyErr
+	}
+
+	return &ast.While{
+		Condition: cond,
+		Body:      body,
+	}, nil
 }
 
 func (p *Parser) printStatement() (ast.Stmt, error) {

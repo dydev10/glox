@@ -12,6 +12,7 @@ type VisitorStmt[R any] interface {
 	VisitIf(expr *If) (R, error)
 	VisitPrint(expr *Print) (R, error)
 	VisitVar(expr *Var) (R, error)
+	VisitWhile(expr *While) (R, error)
 }
 
 type Block struct {
@@ -55,4 +56,13 @@ type Var struct {
 
 func (n *Var) Accept(v VisitorStmt[any]) (any, error) {
 	return v.VisitVar(n)
+}
+
+type While struct {
+	Condition Expr
+	Body      Stmt
+}
+
+func (n *While) Accept(v VisitorStmt[any]) (any, error) {
+	return v.VisitWhile(n)
 }
