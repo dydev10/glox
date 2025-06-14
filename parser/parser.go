@@ -378,7 +378,8 @@ func (p *Parser) synchronize() {
 *	program        → declaration* EOF ;
 *	declaration    → varDecl | statement ;
 *	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
-*	statement      → exprStmt | ifStm | printStmt | whileStmt | block;
+*	statement      → exprStmt | forStmt | ifStm | printStmt | whileStmt | block;
+* forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
 * whileStmt      → "while" "(" expression ")" statement ;
 * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 * block          → "{" declaration* "}" ;
@@ -395,6 +396,10 @@ func (p *Parser) declaration() (ast.Stmt, error) {
 }
 
 func (p *Parser) statement() (ast.Stmt, error) {
+	if p.match(lexer.FOR) {
+		return p.forStatement()
+	}
+
 	if p.match(lexer.IF) {
 		return p.ifStmt()
 	}
@@ -416,6 +421,90 @@ func (p *Parser) statement() (ast.Stmt, error) {
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser) forStatement() (ast.Stmt, error) {
+	_, lParenErr := p.consume(lexer.LEFT_PAREN, "Expect '(' after 'for'.")
+	if lParenErr != nil {
+		return nil, lParenErr
+	}
+
+	var initializer ast.Stmt
+	var initializerErr error
+	if p.match(lexer.SEMICOLON) {
+		initializer = nil
+	} else if p.match(lexer.VAR) {
+		initializer, initializerErr = p.varDeclaration()
+	} else {
+		initializer, initializerErr = p.expressionStatement()
+	}
+
+	if initializerErr != nil {
+		return nil, initializerErr
+	}
+
+	var condition ast.Expr
+	var condErr error
+	if !p.check(lexer.SEMICOLON) {
+		condition, condErr = p.expression()
+		if condErr != nil {
+			return nil, condErr
+		}
+	}
+
+	_, condCloseErr := p.consume(lexer.SEMICOLON, "Expect ';' after loop condition.")
+	if condCloseErr != nil {
+		return nil, condCloseErr
+	}
+
+	var increment ast.Expr
+	var incErr error
+	if !p.check(lexer.RIGHT_PAREN) {
+		increment, incErr = p.expression()
+		if incErr != nil {
+			return nil, incErr
+		}
+	}
+
+	_, rParenErr := p.consume(lexer.RIGHT_PAREN, "Expect ')' after for clauses.")
+	if rParenErr != nil {
+		return nil, rParenErr
+	}
+
+	body, bodyErr := p.statement()
+	if bodyErr != nil {
+		return nil, bodyErr
+	}
+
+	if increment != nil {
+		body = &ast.Block{
+			Statements: []ast.Stmt{
+				body,
+				&ast.Expression{
+					Expression: increment,
+				},
+			},
+		}
+	}
+
+	if condition == nil {
+		condition = &ast.Literal{Value: true}
+	}
+	body = &ast.While{
+		Condition: condition,
+		Body:      body,
+	}
+
+	if initializer != nil {
+		body = &ast.Block{
+			Statements: []ast.Stmt{
+				initializer,
+				body,
+			},
+		}
+	}
+
+	return body, nil
 }
 
 func (p *Parser) ifStmt() (ast.Stmt, error) {

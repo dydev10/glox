@@ -32,7 +32,14 @@ else print "outer else";
 
 // loops
 var i = 0;
+print "while loop";
 while (i < 5) {
   print i;
   i = i + 1;
+}
+
+
+print "for loop";
+for (var f = 0; f < 5; f = f + 1) {
+  print f;
 }
