@@ -18,6 +18,24 @@ func (p Printer) VisitBinary(expr *Binary) (any, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
+func (p Printer) VisitCall(expr *Call) (any, error) {
+	var builder strings.Builder
+
+	callee, _ := expr.Callee.Accept(p)
+	builder.WriteString(callee.(string))
+	builder.WriteString("(")
+	for i, arg := range expr.Arguments {
+		val, _ := arg.Accept(p)
+		builder.WriteString(val.(string))
+		if i < len(expr.Arguments)-1 {
+			builder.WriteString(",")
+		}
+	}
+	builder.WriteString(")")
+
+	return builder.String(), nil
+}
+
 func (p Printer) VisitGrouping(expr *Grouping) (any, error) {
 	return p.parenthesize("group", expr.Expression)
 }

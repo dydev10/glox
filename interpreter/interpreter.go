@@ -9,12 +9,18 @@ import (
 )
 
 type Interpreter struct {
+	globals     *Environment
 	environment *Environment
 }
 
 func NewInterpreter() *Interpreter {
+	globals := NewEnvironment(nil)
+
+	globals.define("clock", &Clock{})
+
 	return &Interpreter{
-		environment: NewEnvironment(nil),
+		globals:     globals,
+		environment: globals,
 	}
 }
 
@@ -276,6 +282,42 @@ func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
 
 	// should be unreachable
 	return nil, nil
+}
+
+func (intr *Interpreter) VisitCall(expr *ast.Call) (any, error) {
+	callee, calleeErr := intr.evaluate(expr.Callee)
+	if calleeErr != nil {
+		return nil, calleeErr
+	}
+
+	arguments := []any{}
+	for _, arg := range expr.Arguments {
+		argEval, argEvalErr := intr.evaluate(arg)
+		if argEvalErr != nil {
+			return nil, argEvalErr
+		}
+
+		arguments = append(arguments, argEval)
+	}
+
+	function, ok := callee.(LoxCallable)
+	if !ok {
+		notCallableErr := &RuntimeError{
+			token:   expr.Paren,
+			message: "Can only call functions and classes.",
+		}
+		return nil, notCallableErr
+	}
+
+	if function.Arity() != len(arguments) {
+		arityErr := &RuntimeError{
+			token:   expr.Paren,
+			message: fmt.Sprintf("Expected %d arguments but got %d.", function.Arity(), len(arguments)),
+		}
+		return nil, arityErr
+	}
+
+	return function.Call(intr, arguments)
 }
 
 func (intr *Interpreter) VisitAssign(expr *ast.Assign) (any, error) {

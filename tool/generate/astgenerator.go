@@ -112,6 +112,7 @@ func main() {
 	defineAst("ast", "Expr", []string{
 		"Assign   : *lexer.Token name, Expr value",
 		"Binary   : Expr left, *lexer.Token operator, Expr right",
+		"Call     : Expr callee, *lexer.Token paren, []Expr arguments",
 		"Grouping : Expr expression",
 		"Literal  : any value",
 		"Logical  : Expr left, *lexer.Token operator, Expr right",

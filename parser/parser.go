@@ -104,7 +104,9 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 * comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 * term           → factor ( ( "-" | "+" ) factor )* ;
 * factor         → unary ( ( "/" | "*" ) unary )* ;
-* unary          → ( "!" | "-" ) unary | primary ;
+* unary          → ( "!" | "-" ) unary | call ;
+* call           → primary ( "(" arguments? ")" )* ;
+* arguments      → expression ( "," expression )* ;
 * primary        → "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")"| IDENTIFIER ;
  */
 
@@ -292,7 +294,61 @@ func (p *Parser) unary() (ast.Expr, error) {
 		}, nil
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+func (p *Parser) finishCall(callee ast.Expr) (ast.Expr, error) {
+	arguments := []ast.Expr{}
+
+	if !p.check(lexer.RIGHT_PAREN) {
+		// do-while loop
+		for hasArg := true; hasArg; hasArg = p.match(lexer.COMMA) {
+			// print too many arguments error but don't stop parsing
+			if len(arguments) >= 255 {
+				tooManyArgsErr := p.logError("Can't have more than 255 arguments.")
+				fmt.Println(tooManyArgsErr)
+			}
+
+			arg, argErr := p.expression()
+			if argErr != nil {
+				return nil, argErr
+			}
+			arguments = append(arguments, arg)
+		}
+	}
+
+	paren, parenErr := p.consume(lexer.RIGHT_PAREN, "Expect ')' after arguments.")
+	if parenErr != nil {
+		return nil, parenErr
+	}
+
+	return &ast.Call{
+		Callee:    callee,
+		Paren:     paren,
+		Arguments: arguments,
+	}, nil
+}
+
+func (p *Parser) call() (ast.Expr, error) {
+	expr, err := p.primary()
+	if err != nil {
+		return nil, err
+	}
+
+	// unconditional loop, depends on break to exit loop
+	for {
+		if p.match(lexer.LEFT_PAREN) {
+			expr, err = p.finishCall(expr)
+			if err != nil {
+				// break loop to return error
+				return nil, err
+			}
+		} else {
+			break
+		}
+	}
+
+	return expr, nil
 }
 
 func (p *Parser) primary() (ast.Expr, error) {

@@ -43,3 +43,16 @@ print "for loop";
 for (var f = 0; f < 5; f = f + 1) {
   print f;
 }
+
+
+
+// MUST BE AT
+// print clock in infinite loop
+print "End of program. Now printing seconds for fun";
+var time = clock();
+while (true) {
+ if (clock() != time) {
+  time = clock();
+  print time;
+ }
+}
