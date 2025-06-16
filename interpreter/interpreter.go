@@ -32,6 +32,8 @@ func PrintEvaluation(val any) string {
 		return strconv.FormatFloat(v, 'f', -1, 64) // no .0 needed at end
 	case bool:
 		return strconv.FormatBool(v)
+	case *LoxFunction:
+		return v.String()
 	case nil:
 		return "nil"
 	default:

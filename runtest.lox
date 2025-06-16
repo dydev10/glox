@@ -49,6 +49,7 @@ fun sayHi(first, last) {
   print "Hi, " + first + " " + last + "!";
 }
 sayHi("lil", "coder");
+print sayHi;
 
 
 
