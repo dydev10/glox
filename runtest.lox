@@ -44,6 +44,13 @@ for (var f = 0; f < 5; f = f + 1) {
   print f;
 }
 
+// use defined function call
+fun sayHi(first, last) {
+  print "Hi, " + first + " " + last + "!";
+}
+sayHi("lil", "coder");
+
+
 
 
 // MUST BE AT

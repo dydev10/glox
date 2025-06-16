@@ -432,7 +432,10 @@ func (p *Parser) synchronize() {
 *
 * Language grammar statements rule functions:
 *	program        → declaration* EOF ;
-*	declaration    → varDecl | statement ;
+*	declaration    → funDecl | varDecl | statement ;
+*	funDecl        → "fun" function ;
+*	function       → IDENTIFIER "(" parameters? ")" block ;
+*	parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 *	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 *	statement      → exprStmt | forStmt | ifStm | printStmt | whileStmt | block;
 * forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
@@ -444,6 +447,10 @@ func (p *Parser) synchronize() {
  */
 
 func (p *Parser) declaration() (ast.Stmt, error) {
+	if p.match(lexer.FUN) {
+		return p.function("function")
+	}
+
 	if p.match(lexer.VAR) {
 		return p.varDeclaration()
 	}
@@ -695,4 +702,53 @@ func (p *Parser) block() ([]ast.Stmt, error) {
 	}
 
 	return statements, nil
+}
+
+func (p *Parser) function(kind string) (*ast.Function, error) {
+	name, nameErr := p.consume(lexer.IDENTIFIER, fmt.Sprintf("Expect %s name.", kind))
+	if nameErr != nil {
+		return nil, nameErr
+	}
+
+	if _, err := p.consume(lexer.LEFT_PAREN, fmt.Sprintf("Expect '(' after %s name.", kind)); err != nil {
+		return nil, err
+	}
+
+	parameters := []*lexer.Token{}
+
+	if !p.check(lexer.RIGHT_PAREN) {
+		// do-while loop
+		for hasArg := true; hasArg; hasArg = p.match(lexer.COMMA) {
+			// print too many arguments error but don't stop parsing
+			if len(parameters) >= 255 {
+				tooManyArgsErr := p.logError("Can't have more than 255 parameters.")
+				fmt.Println(tooManyArgsErr)
+			}
+
+			arg, argErr := p.consume(lexer.IDENTIFIER, "Expect parameter name.")
+			if argErr != nil {
+				return nil, argErr
+			}
+			parameters = append(parameters, arg)
+		}
+	}
+
+	if _, err := p.consume(lexer.RIGHT_PAREN, "Expect ')' after parameters."); err != nil {
+		return nil, err
+	}
+
+	if _, err := p.consume(lexer.LEFT_BRACE, fmt.Sprintf("Expect '{' before %s body.", kind)); err != nil {
+		return nil, err
+	}
+
+	body, bodyErr := p.block()
+	if bodyErr != nil {
+		return nil, bodyErr
+	}
+
+	return &ast.Function{
+		Name:   name,
+		Params: parameters,
+		Body:   body,
+	}, nil
 }

@@ -348,6 +348,14 @@ func (intr *Interpreter) VisitExpression(stmt *ast.Expression) (any, error) {
 	return nil, err
 }
 
+func (intr *Interpreter) VisitFunction(stmt *ast.Function) (any, error) {
+	function := &LoxFunction{
+		declaration: stmt,
+	}
+	intr.environment.define(stmt.Name.Lexeme, function)
+	return nil, nil
+}
+
 func (intr *Interpreter) VisitIf(stmt *ast.If) (any, error) {
 	condResult, condErr := intr.evaluate(stmt.Condition)
 	if condErr != nil {

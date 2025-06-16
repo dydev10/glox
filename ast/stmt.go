@@ -9,6 +9,7 @@ type Stmt interface {
 type VisitorStmt[R any] interface {
 	VisitBlock(expr *Block) (R, error)
 	VisitExpression(expr *Expression) (R, error)
+	VisitFunction(expr *Function) (R, error)
 	VisitIf(expr *If) (R, error)
 	VisitPrint(expr *Print) (R, error)
 	VisitVar(expr *Var) (R, error)
@@ -29,6 +30,16 @@ type Expression struct {
 
 func (n *Expression) Accept(v VisitorStmt[any]) (any, error) {
 	return v.VisitExpression(n)
+}
+
+type Function struct {
+	Name   *lexer.Token
+	Params []*lexer.Token
+	Body   []Stmt
+}
+
+func (n *Function) Accept(v VisitorStmt[any]) (any, error) {
+	return v.VisitFunction(n)
 }
 
 type If struct {
