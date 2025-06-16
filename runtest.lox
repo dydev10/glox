@@ -51,6 +51,14 @@ fun sayHi(first, last) {
 sayHi("lil", "coder");
 print sayHi;
 
+// function with return value
+fun getSum(a, b) {
+  print "Adding a and b";
+  return a + b;
+}
+print getSum(10, 20);
+print getSum;
+
 
 
 

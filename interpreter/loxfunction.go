@@ -18,6 +18,10 @@ func (f *LoxFunction) Call(intr *Interpreter, arguments []any) (any, error) {
 	}
 
 	if err := intr.executeBlock(f.declaration.Body, environment); err != nil {
+		thrownReturn, isReturn := err.(*ThrownReturn)
+		if isReturn {
+			return thrownReturn.value, nil
+		}
 		return nil, err
 	}
 

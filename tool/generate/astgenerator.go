@@ -126,6 +126,7 @@ func main() {
 		"Function   : *lexer.Token name, []*lexer.Token params, []Stmt body",
 		"If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
 		"Print      : Expr expression",
+		"Return     : *lexer.Token keyword, Expr value",
 		"Var        : *lexer.Token name, Expr initializer",
 		"While      : Expr condition, Stmt body",
 	})

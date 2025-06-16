@@ -383,6 +383,21 @@ func (intr *Interpreter) VisitPrint(stmt *ast.Print) (any, error) {
 	return nil, nil
 }
 
+func (intr *Interpreter) VisitReturn(stmt *ast.Return) (any, error) {
+	var value any
+	var valErr error
+
+	if stmt.Value != nil {
+		value, valErr = intr.evaluate(stmt.Value)
+		if valErr != nil {
+			return nil, valErr
+		}
+	}
+
+	// intentionally return value as error so that it can skip the call stack to return control to LoxFunction.Call
+	return nil, &ThrownReturn{value: value}
+}
+
 func (intr *Interpreter) VisitVar(stmt *ast.Var) (any, error) {
 	var value any
 	var err error

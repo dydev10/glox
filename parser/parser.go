@@ -437,13 +437,14 @@ func (p *Parser) synchronize() {
 *	function       → IDENTIFIER "(" parameters? ")" block ;
 *	parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 *	varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
-*	statement      → exprStmt | forStmt | ifStm | printStmt | whileStmt | block;
+*	statement      → exprStmt | forStmt | ifStm | printStmt | returnStmt | whileStmt | block;
 * forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
 * whileStmt      → "while" "(" expression ")" statement ;
 * ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
 * block          → "{" declaration* "}" ;
 *	exprStmt       → expression ";" ;
 *	printStmt      → "print" expression ";" ;
+* returnStmt     → "return" expression? ";" ;
  */
 
 func (p *Parser) declaration() (ast.Stmt, error) {
@@ -469,6 +470,10 @@ func (p *Parser) statement() (ast.Stmt, error) {
 
 	if p.match(lexer.PRINT) {
 		return p.printStatement()
+	}
+
+	if p.match(lexer.RETURN) {
+		return p.returnStatement()
 	}
 
 	if p.match(lexer.WHILE) {
@@ -669,6 +674,28 @@ func (p *Parser) printStatement() (ast.Stmt, error) {
 	}
 
 	return &ast.Print{Expression: value}, nil
+}
+
+func (p *Parser) returnStatement() (ast.Stmt, error) {
+	keyword := p.previous()
+
+	var value ast.Expr
+	var valErr error
+	if !p.check(lexer.SEMICOLON) {
+		value, valErr = p.expression()
+		if valErr != nil {
+			return nil, valErr
+		}
+	}
+
+	if _, err := p.consume(lexer.SEMICOLON, "Expect ';' after return value."); err != nil {
+		return nil, err
+	}
+
+	return &ast.Return{
+		Keyword: keyword,
+		Value:   value,
+	}, nil
 }
 
 func (p *Parser) expressionStatement() (ast.Stmt, error) {

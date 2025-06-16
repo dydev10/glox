@@ -12,6 +12,7 @@ type VisitorStmt[R any] interface {
 	VisitFunction(expr *Function) (R, error)
 	VisitIf(expr *If) (R, error)
 	VisitPrint(expr *Print) (R, error)
+	VisitReturn(expr *Return) (R, error)
 	VisitVar(expr *Var) (R, error)
 	VisitWhile(expr *While) (R, error)
 }
@@ -58,6 +59,15 @@ type Print struct {
 
 func (n *Print) Accept(v VisitorStmt[any]) (any, error) {
 	return v.VisitPrint(n)
+}
+
+type Return struct {
+	Keyword *lexer.Token
+	Value   Expr
+}
+
+func (n *Return) Accept(v VisitorStmt[any]) (any, error) {
+	return v.VisitReturn(n)
 }
 
 type Var struct {
