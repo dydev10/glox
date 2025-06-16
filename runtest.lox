@@ -59,10 +59,25 @@ fun getSum(a, b) {
 print getSum(10, 20);
 print getSum;
 
+// local functions with closure
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    print i;
+  }
+
+  return count;
+}
+var counter = makeCounter();
+counter();
+counter();
+print counter;
 
 
 
-// MUST BE AT
+
+// MUST BE AT END
 // print clock in infinite loop
 print "End of program. Now printing seconds for fun";
 var time = clock();

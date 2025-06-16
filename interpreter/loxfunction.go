@@ -4,6 +4,7 @@ import "github.com/dydev10/glox/ast"
 
 type LoxFunction struct {
 	declaration *ast.Function
+	closure     *Environment
 }
 
 func (f *LoxFunction) Arity() int {
@@ -11,7 +12,7 @@ func (f *LoxFunction) Arity() int {
 }
 
 func (f *LoxFunction) Call(intr *Interpreter, arguments []any) (any, error) {
-	environment := NewEnvironment(intr.globals)
+	environment := NewEnvironment(f.closure)
 
 	for i := range f.declaration.Params {
 		environment.define(f.declaration.Params[i].Lexeme, arguments[i])

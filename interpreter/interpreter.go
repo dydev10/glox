@@ -353,6 +353,7 @@ func (intr *Interpreter) VisitExpression(stmt *ast.Expression) (any, error) {
 func (intr *Interpreter) VisitFunction(stmt *ast.Function) (any, error) {
 	function := &LoxFunction{
 		declaration: stmt,
+		closure:     intr.environment,
 	}
 	intr.environment.define(stmt.Name.Lexeme, function)
 	return nil, nil
