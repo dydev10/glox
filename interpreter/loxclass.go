@@ -5,13 +5,15 @@ type LoxClass struct {
 }
 
 func (c *LoxClass) Arity() int {
-	// TODO: implement this method
 	return 0
 }
 
 func (c *LoxClass) Call(intr *Interpreter, arguments []any) (any, error) {
-	// TODO: implement this method
-	return nil, nil
+	instance := &LoxInstance{
+		class: c,
+	}
+
+	return instance, nil
 }
 
 func (c *LoxClass) String() string {
