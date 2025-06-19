@@ -432,7 +432,8 @@ func (p *Parser) synchronize() {
 *
 * Language grammar statements rule functions:
 *	program        → declaration* EOF ;
-*	declaration    → funDecl | varDecl | statement ;
+*	declaration    → classDecl | funDecl | varDecl | statement ;
+* classDecl      → "class" IDENTIFIER "{" function* "}" ;
 *	funDecl        → "fun" function ;
 *	function       → IDENTIFIER "(" parameters? ")" block ;
 *	parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -448,6 +449,10 @@ func (p *Parser) synchronize() {
  */
 
 func (p *Parser) declaration() (ast.Stmt, error) {
+	if p.match(lexer.CLASS) {
+		return p.classDeclaration()
+	}
+
 	if p.match(lexer.FUN) {
 		return p.function("function")
 	}
@@ -489,6 +494,35 @@ func (p *Parser) statement() (ast.Stmt, error) {
 	}
 
 	return p.expressionStatement()
+}
+
+func (p *Parser) classDeclaration() (ast.Stmt, error) {
+	name, nameErr := p.consume(lexer.IDENTIFIER, "Expect class name.")
+	if nameErr != nil {
+		return nil, nameErr
+	}
+
+	if _, err := p.consume(lexer.LEFT_BRACE, "Expect '{' before class body."); err != nil {
+		return nil, err
+	}
+
+	methods := []*ast.Function{}
+	for !p.check(lexer.RIGHT_BRACE) && !p.isAtEnd() {
+		function, err := p.function("method")
+		if err != nil {
+			return nil, err
+		}
+		methods = append(methods, function)
+	}
+
+	if _, err := p.consume(lexer.RIGHT_BRACE, "Expect '}' after class body."); err != nil {
+		return nil, err
+	}
+
+	return &ast.Class{
+		Name:    name,
+		Methods: methods,
+	}, nil
 }
 
 func (p *Parser) forStatement() (ast.Stmt, error) {

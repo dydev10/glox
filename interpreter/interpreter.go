@@ -34,7 +34,7 @@ func PrintEvaluation(val any) string {
 		return strconv.FormatFloat(v, 'f', -1, 64) // no .0 needed at end
 	case bool:
 		return strconv.FormatBool(v)
-	case *LoxFunction:
+	case LoxCallable:
 		return v.String()
 	case nil:
 		return "nil"
@@ -363,6 +363,16 @@ func (intr *Interpreter) VisitAssign(expr *ast.Assign) (any, error) {
 func (intr *Interpreter) VisitBlock(stmt *ast.Block) (any, error) {
 	err := intr.executeBlock(stmt.Statements, NewEnvironment(intr.environment))
 	return nil, err
+}
+
+func (intr *Interpreter) VisitClass(stmt *ast.Class) (any, error) {
+	intr.environment.define(stmt.Name.Lexeme, nil)
+	class := &LoxClass{
+		name: stmt.Name.Lexeme,
+	}
+	intr.environment.assign(stmt.Name, class)
+
+	return nil, nil
 }
 
 func (intr *Interpreter) VisitExpression(stmt *ast.Expression) (any, error) {

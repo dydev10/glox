@@ -86,6 +86,14 @@ var a = "global";
   showA();
 }
 
+// classes test
+class TClass {
+  meth() {
+    print "class method";
+  }
+}
+print TClass;
+
 
 
 

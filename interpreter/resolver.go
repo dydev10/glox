@@ -120,6 +120,13 @@ func (r *Resolver) VisitBlock(stmt *ast.Block) (any, error) {
 	return nil, nil
 }
 
+func (r *Resolver) VisitClass(stmt *ast.Class) (any, error) {
+	r.declare(stmt.Name)
+	r.define(stmt.Name)
+
+	return nil, nil
+}
+
 func (r *Resolver) VisitVar(stmt *ast.Var) (any, error) {
 	r.declare(stmt.Name)
 	if stmt.Initializer != nil {
