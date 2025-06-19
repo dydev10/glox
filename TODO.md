@@ -27,5 +27,13 @@
 ### Control Flow
 [-] Add break and continue keywords support to early exit loops and if-else blocks  
 
+### Functions
+[-] Add support for anonymous functions   
 
+### Resolver
+[-] Detect unused variables in scope  
+[-] Detect unreachable return statement   
+[-] Use an array instead of map to represent local block scope in resolver, associate each local variable to unique index in array    
 
+### Classes
+[-]

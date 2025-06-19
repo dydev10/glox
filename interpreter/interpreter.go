@@ -11,6 +11,7 @@ import (
 type Interpreter struct {
 	globals     *Environment
 	environment *Environment
+	locals      map[ast.Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -21,6 +22,7 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{
 		globals:     globals,
 		environment: globals,
+		locals:      make(map[ast.Expr]int),
 	}
 }
 
@@ -63,6 +65,14 @@ func (intr *Interpreter) execute(stmt ast.Stmt) (any, error) {
 	return stmt.Accept(intr)
 }
 
+func (intr *Interpreter) evaluate(expr ast.Expr) (any, error) {
+	return expr.Accept(intr)
+}
+
+func (intr *Interpreter) resolve(expr ast.Expr, depth int) {
+	intr.locals[expr] = depth
+}
+
 func (intr *Interpreter) executeBlock(statements []ast.Stmt, env *Environment) error {
 	prevEnv := intr.environment
 	intr.environment = env
@@ -81,8 +91,13 @@ func (intr *Interpreter) executeBlock(statements []ast.Stmt, env *Environment) e
 	return nil
 }
 
-func (intr *Interpreter) evaluate(expr ast.Expr) (any, error) {
-	return expr.Accept(intr)
+func (intr *Interpreter) lookupVariable(name *lexer.Token, expr ast.Expr) (any, error) {
+	distance, ok := intr.locals[expr]
+	if ok {
+		return intr.environment.getAt(distance, name.Lexeme)
+	} else {
+		return intr.globals.get(name)
+	}
 }
 
 func (intr *Interpreter) isTruthy(val any) bool {
@@ -195,7 +210,7 @@ func (intr *Interpreter) VisitUnary(expr *ast.Unary) (any, error) {
 }
 
 func (intr *Interpreter) VisitVariable(expr *ast.Variable) (any, error) {
-	return intr.environment.get(expr.Name)
+	return intr.lookupVariable(expr.Name, expr)
 }
 
 func (intr *Interpreter) VisitBinary(expr *ast.Binary) (any, error) {
@@ -328,9 +343,14 @@ func (intr *Interpreter) VisitAssign(expr *ast.Assign) (any, error) {
 		return nil, err
 	}
 
-	assignErr := intr.environment.assign(expr.Name, value)
-	if assignErr != nil {
-		return nil, assignErr
+	distance, ok := intr.locals[expr]
+	if ok {
+		intr.environment.assignAt(distance, expr.Name, value)
+	} else {
+		assignErr := intr.globals.assign(expr.Name, value)
+		if assignErr != nil {
+			return nil, assignErr
+		}
 	}
 
 	return value, nil

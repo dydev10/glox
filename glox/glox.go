@@ -17,6 +17,7 @@ type Glox struct {
 	isEvalMode bool
 
 	HadSyntaxError  bool
+	HadResolveError bool
 	HadRuntimeError bool
 	errorList       []error
 
@@ -63,7 +64,18 @@ func (g *Glox) RunStatements() {
 	if !g.isRunMode || g.HadSyntaxError {
 		return
 	}
+
 	intr := interpreter.NewInterpreter()
+	resolver := interpreter.NewResolver(intr)
+
+	resolver.Resolve(g.statements)
+	g.HadResolveError = len(resolver.Errors) > 0
+
+	if g.HadResolveError {
+		g.errorList = append(g.errorList, resolver.Errors...)
+		return
+	}
+
 	runtimeErr := intr.Interpret(statements)
 	if runtimeErr != nil {
 		g.HadRuntimeError = true

@@ -58,7 +58,7 @@ func runFile(command, filename string) {
 
 	if glox.HadRuntimeError {
 		os.Exit(70)
-	} else if glox.HadSyntaxError {
+	} else if glox.HadSyntaxError || glox.HadResolveError {
 		os.Exit(65)
 	} else {
 		os.Exit(0)
