@@ -226,6 +226,12 @@ func (r *Resolver) VisitCall(expr *ast.Call) (any, error) {
 	return nil, nil
 }
 
+func (r *Resolver) VisitGet(expr *ast.Get) (any, error) {
+	r.resolveExpr(expr.Object)
+
+	return nil, nil
+}
+
 func (r *Resolver) VisitGrouping(expr *ast.Grouping) (any, error) {
 	r.resolveExpr(expr.Expression)
 
@@ -239,6 +245,13 @@ func (r *Resolver) VisitLiteral(expr *ast.Literal) (any, error) {
 func (r *Resolver) VisitLogical(expr *ast.Logical) (any, error) {
 	r.resolveExpr(expr.Left)
 	r.resolveExpr(expr.Right)
+
+	return nil, nil
+}
+
+func (r *Resolver) VisitSet(expr *ast.Set) (any, error) {
+	r.resolveExpr(expr.Value)
+	r.resolveExpr(expr.Object)
 
 	return nil, nil
 }

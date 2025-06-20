@@ -94,6 +94,9 @@ class TClass {
 }
 print TClass;
 print TClass();
+var instance = TClass();
+instance.abc = "abc value from instance";
+print instance.abc;
 
 
 

@@ -113,9 +113,11 @@ func main() {
 		"Assign   : *lexer.Token name, Expr value",
 		"Binary   : Expr left, *lexer.Token operator, Expr right",
 		"Call     : Expr callee, *lexer.Token paren, []Expr arguments",
+		"Get      : Expr object, *lexer.Token name",
 		"Grouping : Expr expression",
 		"Literal  : any value",
 		"Logical  : Expr left, *lexer.Token operator, Expr right",
+		"Set      : Expr object, *lexer.Token name, Expr value",
 		"Unary    : *lexer.Token operator, Expr right",
 		"Variable : *lexer.Token name",
 	})

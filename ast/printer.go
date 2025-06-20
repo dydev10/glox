@@ -36,6 +36,11 @@ func (p Printer) VisitCall(expr *Call) (any, error) {
 	return builder.String(), nil
 }
 
+func (p Printer) VisitGet(expr *Get) (any, error) {
+	// TODO: improve print representation of this tree node
+	return p.parenthesize("get "+expr.Name.Lexeme, expr.Object)
+}
+
 func (p Printer) VisitGrouping(expr *Grouping) (any, error) {
 	return p.parenthesize("group", expr.Expression)
 }
@@ -49,6 +54,11 @@ func (p Printer) VisitLiteral(expr *Literal) (any, error) {
 
 func (p Printer) VisitLogical(expr *Logical) (any, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
+}
+
+func (p Printer) VisitSet(expr *Set) (any, error) {
+	// TODO: improve print representation of this tree node
+	return p.parenthesize("set "+expr.Name.Lexeme, expr.Object, expr.Value)
 }
 
 func (p Printer) VisitUnary(expr *Unary) (any, error) {

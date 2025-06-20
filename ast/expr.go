@@ -10,9 +10,11 @@ type VisitorExpr[R any] interface {
 	VisitAssign(expr *Assign) (R, error)
 	VisitBinary(expr *Binary) (R, error)
 	VisitCall(expr *Call) (R, error)
+	VisitGet(expr *Get) (R, error)
 	VisitGrouping(expr *Grouping) (R, error)
 	VisitLiteral(expr *Literal) (R, error)
 	VisitLogical(expr *Logical) (R, error)
+	VisitSet(expr *Set) (R, error)
 	VisitUnary(expr *Unary) (R, error)
 	VisitVariable(expr *Variable) (R, error)
 }
@@ -46,6 +48,15 @@ func (n *Call) Accept(v VisitorExpr[any]) (any, error) {
 	return v.VisitCall(n)
 }
 
+type Get struct {
+	Object Expr
+	Name   *lexer.Token
+}
+
+func (n *Get) Accept(v VisitorExpr[any]) (any, error) {
+	return v.VisitGet(n)
+}
+
 type Grouping struct {
 	Expression Expr
 }
@@ -70,6 +81,16 @@ type Logical struct {
 
 func (n *Logical) Accept(v VisitorExpr[any]) (any, error) {
 	return v.VisitLogical(n)
+}
+
+type Set struct {
+	Object Expr
+	Name   *lexer.Token
+	Value  Expr
+}
+
+func (n *Set) Accept(v VisitorExpr[any]) (any, error) {
+	return v.VisitSet(n)
 }
 
 type Unary struct {

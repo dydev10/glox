@@ -184,6 +184,30 @@ func (intr *Interpreter) VisitLogical(expr *ast.Logical) (any, error) {
 	return intr.evaluate(expr.Right)
 }
 
+func (intr *Interpreter) VisitSet(expr *ast.Set) (any, error) {
+	object, objErr := intr.evaluate(expr.Object)
+	if objErr != nil {
+		return nil, objErr
+	}
+
+	instance, isInstance := object.(*LoxInstance)
+	if !isInstance {
+		return nil, &RuntimeError{
+			token:   expr.Name,
+			message: "Only instances have fields.",
+		}
+	}
+
+	value, valueErr := intr.evaluate(expr.Value)
+	if valueErr != nil {
+		return nil, valueErr
+	}
+
+	instance.Set(expr.Name, value)
+
+	return value, nil
+}
+
 func (intr *Interpreter) VisitGrouping(expr *ast.Grouping) (any, error) {
 	return intr.evaluate(expr.Expression)
 }
@@ -335,6 +359,23 @@ func (intr *Interpreter) VisitCall(expr *ast.Call) (any, error) {
 	}
 
 	return function.Call(intr, arguments)
+}
+
+func (intr *Interpreter) VisitGet(expr *ast.Get) (any, error) {
+	object, objectErr := intr.evaluate(expr.Object)
+	if objectErr != nil {
+		return nil, objectErr
+	}
+
+	instance, isInstance := object.(*LoxInstance)
+	if !isInstance {
+		return &RuntimeError{
+			token:   expr.Name,
+			message: "Only instances have properties.",
+		}, nil
+	}
+
+	return instance.Get(expr.Name)
 }
 
 func (intr *Interpreter) VisitAssign(expr *ast.Assign) (any, error) {

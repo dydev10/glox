@@ -97,7 +97,7 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 *
 * Language grammar expression rule functions:
 * expression     → assignment ;
-*	assignment     → IDENTIFIER "=" assignment | logic_or;
+*	assignment     → ( call "." )? IDENTIFIER "=" assignment | logic_or ;
 * logic_or       → logic_and ( "or" logic_and )* ;
 * logic_and      → equality ( "and" equality )* ;
 * equality       → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -105,7 +105,7 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 * term           → factor ( ( "-" | "+" ) factor )* ;
 * factor         → unary ( ( "/" | "*" ) unary )* ;
 * unary          → ( "!" | "-" ) unary | call ;
-* call           → primary ( "(" arguments? ")" )* ;
+* call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 * arguments      → expression ( "," expression )* ;
 * primary        → "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")"| IDENTIFIER ;
  */
@@ -131,6 +131,12 @@ func (p *Parser) assignment() (ast.Expr, error) {
 			return &ast.Assign{
 				Name:  varExpr.Name,
 				Value: value,
+			}, nil
+		} else if getExpr, ok := expr.(*ast.Get); ok {
+			return &ast.Set{
+				Object: getExpr.Object,
+				Name:   getExpr.Name,
+				Value:  value,
 			}, nil
 		} else {
 			// log invalid assignment target error, but don't return
@@ -342,6 +348,15 @@ func (p *Parser) call() (ast.Expr, error) {
 			if err != nil {
 				// break loop to return error
 				return nil, err
+			}
+		} else if p.match(lexer.DOT) {
+			name, nameErr := p.consume(lexer.IDENTIFIER, "Expect property name after '.'.")
+			if nameErr != nil {
+				return nil, nameErr
+			}
+			expr = &ast.Get{
+				Object: expr,
+				Name:   name,
 			}
 		} else {
 			break

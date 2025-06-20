@@ -10,7 +10,8 @@ func (c *LoxClass) Arity() int {
 
 func (c *LoxClass) Call(intr *Interpreter, arguments []any) (any, error) {
 	instance := &LoxInstance{
-		class: c,
+		class:  c,
+		fields: make(map[string]any),
 	}
 
 	return instance, nil
