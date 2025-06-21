@@ -13,6 +13,7 @@ type FunctionType int
 const (
 	ftNONE FunctionType = iota
 	ftFUNCTION
+	ftINITIALIZER
 	ftMETHOD
 )
 
@@ -142,6 +143,9 @@ func (r *Resolver) VisitClass(stmt *ast.Class) (any, error) {
 
 	for _, method := range stmt.Methods {
 		declaration := ftMETHOD
+		if method.Name.Lexeme == "init" {
+			declaration = ftINITIALIZER
+		}
 		r.resolveFunction(method, declaration)
 	}
 
@@ -197,6 +201,11 @@ func (r *Resolver) VisitReturn(stmt *ast.Return) (any, error) {
 	}
 
 	if stmt.Value != nil {
+		// only block returning value from constructor. allow empty return for early exits
+		if r.currentFunction == ftINITIALIZER {
+			r.logError(stmt.Keyword, "Can't return a value from an initializer.")
+		}
+
 		r.resolveExpr(stmt.Value)
 	}
 

@@ -416,8 +416,9 @@ func (intr *Interpreter) VisitClass(stmt *ast.Class) (any, error) {
 	methods := make(map[string]*LoxFunction)
 	for _, method := range stmt.Methods {
 		function := &LoxFunction{
-			declaration: method,
-			closure:     intr.environment,
+			declaration:   method,
+			closure:       intr.environment,
+			isInitializer: method.Name.Lexeme == "init", // check if method is constructor
 		}
 		methods[method.Name.Lexeme] = function
 	}
@@ -438,8 +439,9 @@ func (intr *Interpreter) VisitExpression(stmt *ast.Expression) (any, error) {
 
 func (intr *Interpreter) VisitFunction(stmt *ast.Function) (any, error) {
 	function := &LoxFunction{
-		declaration: stmt,
-		closure:     intr.environment,
+		declaration:   stmt,
+		closure:       intr.environment,
+		isInitializer: false,
 	}
 	intr.environment.define(stmt.Name.Lexeme, function)
 	return nil, nil

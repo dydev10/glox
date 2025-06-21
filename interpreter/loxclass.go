@@ -6,13 +6,22 @@ type LoxClass struct {
 }
 
 func (c *LoxClass) Arity() int {
-	return 0
+	initializer := c.FindMethod("init")
+	if initializer == nil {
+		return 0
+	}
+	return initializer.Arity()
 }
 
 func (c *LoxClass) Call(intr *Interpreter, arguments []any) (any, error) {
 	instance := &LoxInstance{
 		class:  c,
 		fields: make(map[string]any),
+	}
+	// call constructor method of class after binding 'this'
+	initializer := c.FindMethod("init")
+	if initializer != nil {
+		initializer.Bind(instance).Call(intr, arguments)
 	}
 
 	return instance, nil
