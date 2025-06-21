@@ -92,6 +92,9 @@ class TClass {
     print "class method";
     return "returned from class method";
   }
+  getVal() {
+    return this.val;
+  }
 }
 print TClass;
 print TClass();
@@ -100,6 +103,9 @@ instance.abc = "abc value from instance";
 print instance.abc;
 var methodRef = instance.meth;
 print methodRef();
+instance.val = "instance's val";
+var getRef = instance.getVal;
+print getRef();
 print instance;
 
 

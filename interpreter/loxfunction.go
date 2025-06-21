@@ -32,3 +32,13 @@ func (f *LoxFunction) Call(intr *Interpreter, arguments []any) (any, error) {
 func (f *LoxFunction) String() string {
 	return "<fn " + f.declaration.Name.Lexeme + ">"
 }
+
+func (f *LoxFunction) Bind(instance *LoxInstance) *LoxFunction {
+	environment := NewEnvironment(f.closure)
+	environment.define("this", instance)
+
+	return &LoxFunction{
+		declaration: f.declaration,
+		closure:     environment,
+	}
+}

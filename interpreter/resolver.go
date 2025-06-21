@@ -11,15 +11,23 @@ type BlockScope map[string]bool
 type FunctionType int
 
 const (
-	NONE FunctionType = iota
-	FUNCTION
-	METHOD
+	ftNONE FunctionType = iota
+	ftFUNCTION
+	ftMETHOD
+)
+
+type ClassType int
+
+const (
+	ctNONE ClassType = iota
+	ctCLASS
 )
 
 type Resolver struct {
 	interpreter     *Interpreter
 	scopes          *ds.Stack[BlockScope]
 	currentFunction FunctionType
+	currentClass    ClassType
 	Errors          []error
 }
 
@@ -27,7 +35,8 @@ func NewResolver(interpreter *Interpreter) *Resolver {
 	return &Resolver{
 		interpreter:     interpreter,
 		scopes:          ds.NewStack[BlockScope](),
-		currentFunction: NONE,
+		currentFunction: ftNONE,
+		currentClass:    ctNONE,
 		Errors:          []error{},
 	}
 }
@@ -122,13 +131,22 @@ func (r *Resolver) VisitBlock(stmt *ast.Block) (any, error) {
 }
 
 func (r *Resolver) VisitClass(stmt *ast.Class) (any, error) {
+	enclosingClass := r.currentClass
+	r.currentClass = ctCLASS
+
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
+	r.beginScope()
+	r.scopes.Peek()["this"] = true
+
 	for _, method := range stmt.Methods {
-		declaration := METHOD
+		declaration := ftMETHOD
 		r.resolveFunction(method, declaration)
 	}
+
+	r.endScope()
+	r.currentClass = enclosingClass
 
 	return nil, nil
 }
@@ -146,7 +164,7 @@ func (r *Resolver) VisitVar(stmt *ast.Var) (any, error) {
 func (r *Resolver) VisitFunction(stmt *ast.Function) (any, error) {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
-	r.resolveFunction(stmt, FUNCTION)
+	r.resolveFunction(stmt, ftFUNCTION)
 
 	return nil, nil
 }
@@ -174,7 +192,7 @@ func (r *Resolver) VisitPrint(stmt *ast.Print) (any, error) {
 }
 
 func (r *Resolver) VisitReturn(stmt *ast.Return) (any, error) {
-	if r.currentFunction == NONE {
+	if r.currentFunction == ftNONE {
 		r.logError(stmt.Keyword, "Can't return from top-level code.")
 	}
 
@@ -251,6 +269,16 @@ func (r *Resolver) VisitLiteral(expr *ast.Literal) (any, error) {
 func (r *Resolver) VisitLogical(expr *ast.Logical) (any, error) {
 	r.resolveExpr(expr.Left)
 	r.resolveExpr(expr.Right)
+
+	return nil, nil
+}
+
+func (r *Resolver) VisitThis(expr *ast.This) (any, error) {
+	if r.currentClass == ctNONE {
+		r.logError(expr.Keyword, "Can't use 'this' outside of a class.")
+	}
+
+	r.resolveLocal(expr, expr.Keyword)
 
 	return nil, nil
 }

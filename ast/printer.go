@@ -61,6 +61,10 @@ func (p Printer) VisitSet(expr *Set) (any, error) {
 	return p.parenthesize("set "+expr.Name.Lexeme, expr.Object, expr.Value)
 }
 
+func (p Printer) VisitThis(expr *This) (any, error) {
+	return "this", nil
+}
+
 func (p Printer) VisitUnary(expr *Unary) (any, error) {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
 }

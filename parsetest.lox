@@ -1,1 +1,1 @@
-(-23 + 45 <= foo * (false and true or obj.prop + nil)) + fn(420, 10)
+(-23 + 45 <= foo * (false and true or obj.prop + nil)) + fn(420, 10) + this

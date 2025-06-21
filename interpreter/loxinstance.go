@@ -17,7 +17,7 @@ func (i *LoxInstance) Get(name *lexer.Token) (any, error) {
 	}
 
 	if method := i.class.FindMethod(name.Lexeme); method != nil {
-		return method, nil
+		return method.Bind(i), nil
 	}
 
 	return nil, &RuntimeError{

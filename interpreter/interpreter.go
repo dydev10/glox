@@ -208,6 +208,10 @@ func (intr *Interpreter) VisitSet(expr *ast.Set) (any, error) {
 	return value, nil
 }
 
+func (intr *Interpreter) VisitThis(expr *ast.This) (any, error) {
+	return intr.lookupVariable(expr.Keyword, expr)
+}
+
 func (intr *Interpreter) VisitGrouping(expr *ast.Grouping) (any, error) {
 	return intr.evaluate(expr.Expression)
 }
