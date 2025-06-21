@@ -36,4 +36,9 @@
 [-] Use an array instead of map to represent local block scope in resolver, associate each local variable to unique index in array    
 
 ### Classes
+[-] Support metaClasses and static method on classes  
+[-] Support getter and setters for fields   
+
+
+### Inheritance
 [-]
