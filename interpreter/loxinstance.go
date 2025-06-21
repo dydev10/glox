@@ -12,8 +12,12 @@ type LoxInstance struct {
 }
 
 func (i *LoxInstance) Get(name *lexer.Token) (any, error) {
-	if val, ok := i.fields[name.Lexeme]; ok {
-		return val, nil
+	if field, ok := i.fields[name.Lexeme]; ok {
+		return field, nil
+	}
+
+	if method := i.class.FindMethod(name.Lexeme); method != nil {
+		return method, nil
 	}
 
 	return nil, &RuntimeError{

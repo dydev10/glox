@@ -90,6 +90,7 @@ var a = "global";
 class TClass {
   meth() {
     print "class method";
+    return "returned from class method";
   }
 }
 print TClass;
@@ -97,6 +98,9 @@ print TClass();
 var instance = TClass();
 instance.abc = "abc value from instance";
 print instance.abc;
+var methodRef = instance.meth;
+print methodRef();
+print instance;
 
 
 

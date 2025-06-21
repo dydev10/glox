@@ -13,6 +13,7 @@ type FunctionType int
 const (
 	NONE FunctionType = iota
 	FUNCTION
+	METHOD
 )
 
 type Resolver struct {
@@ -123,6 +124,11 @@ func (r *Resolver) VisitBlock(stmt *ast.Block) (any, error) {
 func (r *Resolver) VisitClass(stmt *ast.Class) (any, error) {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
+
+	for _, method := range stmt.Methods {
+		declaration := METHOD
+		r.resolveFunction(method, declaration)
+	}
 
 	return nil, nil
 }

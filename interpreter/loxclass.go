@@ -1,7 +1,8 @@
 package interpreter
 
 type LoxClass struct {
-	name string
+	name    string
+	methods map[string]*LoxFunction
 }
 
 func (c *LoxClass) Arity() int {
@@ -19,4 +20,12 @@ func (c *LoxClass) Call(intr *Interpreter, arguments []any) (any, error) {
 
 func (c *LoxClass) String() string {
 	return c.name
+}
+
+func (c *LoxClass) FindMethod(name string) *LoxFunction {
+	if method, ok := c.methods[name]; ok {
+		return method
+	}
+
+	return nil
 }

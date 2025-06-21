@@ -408,8 +408,19 @@ func (intr *Interpreter) VisitBlock(stmt *ast.Block) (any, error) {
 
 func (intr *Interpreter) VisitClass(stmt *ast.Class) (any, error) {
 	intr.environment.define(stmt.Name.Lexeme, nil)
+
+	methods := make(map[string]*LoxFunction)
+	for _, method := range stmt.Methods {
+		function := &LoxFunction{
+			declaration: method,
+			closure:     intr.environment,
+		}
+		methods[method.Name.Lexeme] = function
+	}
+
 	class := &LoxClass{
-		name: stmt.Name.Lexeme,
+		name:    stmt.Name.Lexeme,
+		methods: methods,
 	}
 	intr.environment.assign(stmt.Name, class)
 
