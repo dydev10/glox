@@ -41,4 +41,5 @@
 
 
 ### Inheritance
-[-]
+[-] Explore mixins, traits, multiple inheritance, virtual inheritance, extension methods, etc. and extend Lox with any of these if seems good fit.   
+[-] Extend any other feature from previous sections to make syntax better or provide more features.   
