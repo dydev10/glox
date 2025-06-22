@@ -15,6 +15,7 @@ type VisitorExpr[R any] interface {
 	VisitLiteral(expr *Literal) (R, error)
 	VisitLogical(expr *Logical) (R, error)
 	VisitSet(expr *Set) (R, error)
+	VisitSuper(expr *Super) (R, error)
 	VisitThis(expr *This) (R, error)
 	VisitUnary(expr *Unary) (R, error)
 	VisitVariable(expr *Variable) (R, error)
@@ -92,6 +93,15 @@ type Set struct {
 
 func (n *Set) Accept(v VisitorExpr[any]) (any, error) {
 	return v.VisitSet(n)
+}
+
+type Super struct {
+	Keyword *lexer.Token
+	Method  *lexer.Token
+}
+
+func (n *Super) Accept(v VisitorExpr[any]) (any, error) {
+	return v.VisitSuper(n)
 }
 
 type This struct {

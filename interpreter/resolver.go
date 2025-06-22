@@ -22,6 +22,7 @@ type ClassType int
 const (
 	ctNONE ClassType = iota
 	ctCLASS
+	ctSUBCLASS
 )
 
 type Resolver struct {
@@ -141,8 +142,14 @@ func (r *Resolver) VisitClass(stmt *ast.Class) (any, error) {
 	if stmt.Superclass != nil && stmt.Name.Lexeme == stmt.Superclass.Name.Lexeme {
 		r.logError(stmt.Superclass.Name, "A class can't inherit from itself.")
 	}
+
 	if stmt.Superclass != nil {
+		r.currentClass = ctSUBCLASS
 		r.resolveExpr(stmt.Superclass)
+
+		// inject new scope to resolve super keyword for this class's methods
+		r.beginScope()
+		r.scopes.Peek()["super"] = true
 	}
 
 	r.beginScope()
@@ -157,6 +164,10 @@ func (r *Resolver) VisitClass(stmt *ast.Class) (any, error) {
 	}
 
 	r.endScope()
+	if stmt.Superclass != nil {
+		r.endScope()
+	}
+
 	r.currentClass = enclosingClass
 
 	return nil, nil
@@ -302,6 +313,18 @@ func (r *Resolver) VisitThis(expr *ast.This) (any, error) {
 func (r *Resolver) VisitSet(expr *ast.Set) (any, error) {
 	r.resolveExpr(expr.Value)
 	r.resolveExpr(expr.Object)
+
+	return nil, nil
+}
+
+func (r *Resolver) VisitSuper(expr *ast.Super) (any, error) {
+	if r.currentClass == ctNONE {
+		r.logError(expr.Keyword, "Can't use 'super' outside of a class.")
+	} else if r.currentClass != ctSUBCLASS {
+		r.logError(expr.Keyword, "Can't use 'super' in a class with no superclass.")
+	}
+
+	r.resolveLocal(expr, expr.Keyword)
 
 	return nil, nil
 }

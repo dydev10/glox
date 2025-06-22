@@ -118,6 +118,7 @@ func main() {
 		"Literal  : any value",
 		"Logical  : Expr left, *lexer.Token operator, Expr right",
 		"Set      : Expr object, *lexer.Token name, Expr value",
+		"Super    : *lexer.Token keyword, *lexer.Token method",
 		"This     : *lexer.Token keyword",
 		"Unary    : *lexer.Token operator, Expr right",
 		"Variable : *lexer.Token name",

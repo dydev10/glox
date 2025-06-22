@@ -15,6 +15,12 @@ class TClass < Sup {
     return this.a + this.b;
   }
 
+  printAB() {
+    super.printAB();
+    print this;
+    print "called super from TClass's method";
+  }
+
   getInstance() {
     return this;
   }

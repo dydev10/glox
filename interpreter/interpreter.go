@@ -208,6 +208,28 @@ func (intr *Interpreter) VisitSet(expr *ast.Set) (any, error) {
 	return value, nil
 }
 
+func (intr *Interpreter) VisitSuper(expr *ast.Super) (any, error) {
+	// errors/nil values are not handled here because resolver should report static errors for cases which can lead to nil value here
+	// if any panics from this function, then check resolver, or VisitClass handler which sets these values in environment
+	distance := intr.locals[expr]
+
+	superRef, _ := intr.environment.getAt(distance, "super")
+	superclass := superRef.(*LoxClass)
+
+	objectRef, _ := intr.environment.getAt(distance-1, "this")
+	object := objectRef.(*LoxInstance)
+
+	method := superclass.FindMethod(expr.Method.Lexeme)
+	if method == nil {
+		return nil, &RuntimeError{
+			token:   expr.Method,
+			message: fmt.Sprintf("Undefined property '%s'.", expr.Method.Lexeme),
+		}
+	}
+
+	return method.Bind(object), nil
+}
+
 func (intr *Interpreter) VisitThis(expr *ast.This) (any, error) {
 	return intr.lookupVariable(expr.Keyword, expr)
 }
@@ -429,6 +451,11 @@ func (intr *Interpreter) VisitClass(stmt *ast.Class) (any, error) {
 
 	intr.environment.define(stmt.Name.Lexeme, nil)
 
+	if stmt.Superclass != nil {
+		intr.environment = NewEnvironment(intr.environment)
+		intr.environment.define("super", superclass)
+	}
+
 	methods := make(map[string]*LoxFunction)
 	for _, method := range stmt.Methods {
 		function := &LoxFunction{
@@ -437,6 +464,10 @@ func (intr *Interpreter) VisitClass(stmt *ast.Class) (any, error) {
 			isInitializer: method.Name.Lexeme == "init", // check if method is constructor
 		}
 		methods[method.Name.Lexeme] = function
+	}
+
+	if stmt.Superclass != nil {
+		intr.environment = intr.environment.enclosing
 	}
 
 	class := &LoxClass{

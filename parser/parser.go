@@ -107,7 +107,7 @@ func (p *Parser) consume(t lexer.TokenType, m string) (*lexer.Token, error) {
 * unary          → ( "!" | "-" ) unary | call ;
 * call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 * arguments      → expression ( "," expression )* ;
-* primary        → "true" | "false" | "nil" | NUMBER | STRING | "(" expression ")"| IDENTIFIER ;
+* primary        → "true" | "false" | "nil" | "this" | NUMBER | STRING | IDENTIFIER | "(" expression ")" | "super" "." IDENTIFIER ;
  */
 
 func (p *Parser) expression() (ast.Expr, error) {
@@ -378,6 +378,20 @@ func (p *Parser) primary() (ast.Expr, error) {
 	}
 	if p.match(lexer.NUMBER, lexer.STRING) {
 		return &ast.Literal{Value: p.previous().Literal}, nil
+	}
+	if p.match(lexer.SUPER) {
+		keyword := p.previous()
+		if _, err := p.consume(lexer.DOT, "Expect '.' after 'super'."); err != nil {
+			return nil, err
+		}
+		method, methodErr := p.consume(lexer.IDENTIFIER, "Expect superclass method name.")
+		if methodErr != nil {
+			return nil, methodErr
+		}
+		return &ast.Super{
+			Keyword: keyword,
+			Method:  method,
+		}, nil
 	}
 	if p.match(lexer.THIS) {
 		return &ast.This{Keyword: p.previous()}, nil

@@ -61,6 +61,11 @@ func (p Printer) VisitSet(expr *Set) (any, error) {
 	return p.parenthesize("set "+expr.Name.Lexeme, expr.Object, expr.Value)
 }
 
+func (p Printer) VisitSuper(expr *Super) (any, error) {
+	// TODO: improve print representation of this tree node
+	return p.parenthesize("super " + expr.Method.Lexeme)
+}
+
 func (p Printer) VisitThis(expr *This) (any, error) {
 	return "this", nil
 }
