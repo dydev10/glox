@@ -451,7 +451,7 @@ func (p *Parser) synchronize() {
 * Language grammar statements rule functions:
 *	program        → declaration* EOF ;
 *	declaration    → classDecl | funDecl | varDecl | statement ;
-* classDecl      → "class" IDENTIFIER "{" function* "}" ;
+* classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 *	funDecl        → "fun" function ;
 *	function       → IDENTIFIER "(" parameters? ")" block ;
 *	parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
@@ -520,6 +520,14 @@ func (p *Parser) classDeclaration() (ast.Stmt, error) {
 		return nil, nameErr
 	}
 
+	var superclass *ast.Variable
+	if p.match(lexer.LESS) {
+		if _, err := p.consume(lexer.IDENTIFIER, "Expect superclass name."); err != nil {
+			return nil, err
+		}
+		superclass = &ast.Variable{Name: p.previous()}
+	}
+
 	if _, err := p.consume(lexer.LEFT_BRACE, "Expect '{' before class body."); err != nil {
 		return nil, err
 	}
@@ -538,8 +546,9 @@ func (p *Parser) classDeclaration() (ast.Stmt, error) {
 	}
 
 	return &ast.Class{
-		Name:    name,
-		Methods: methods,
+		Name:       name,
+		Superclass: superclass,
+		Methods:    methods,
 	}, nil
 }
 

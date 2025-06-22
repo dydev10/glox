@@ -411,6 +411,22 @@ func (intr *Interpreter) VisitBlock(stmt *ast.Block) (any, error) {
 }
 
 func (intr *Interpreter) VisitClass(stmt *ast.Class) (any, error) {
+	var superclass *LoxClass
+	if stmt.Superclass != nil {
+		class, err := intr.evaluate(stmt.Superclass)
+		if err != nil {
+			return nil, err
+		}
+		loxSuperclass, isLoxClass := class.(*LoxClass)
+		if !isLoxClass {
+			return nil, &RuntimeError{
+				token:   stmt.Superclass.Name,
+				message: "Superclass must be a class.",
+			}
+		}
+		superclass = loxSuperclass
+	}
+
 	intr.environment.define(stmt.Name.Lexeme, nil)
 
 	methods := make(map[string]*LoxFunction)
@@ -424,8 +440,9 @@ func (intr *Interpreter) VisitClass(stmt *ast.Class) (any, error) {
 	}
 
 	class := &LoxClass{
-		name:    stmt.Name.Lexeme,
-		methods: methods,
+		name:       stmt.Name.Lexeme,
+		superclass: superclass,
+		methods:    methods,
 	}
 	intr.environment.assign(stmt.Name, class)
 

@@ -27,8 +27,9 @@ func (n *Block) Accept(v VisitorStmt[any]) (any, error) {
 }
 
 type Class struct {
-	Name    *lexer.Token
-	Methods []*Function
+	Name       *lexer.Token
+	Superclass *Variable
+	Methods    []*Function
 }
 
 func (n *Class) Accept(v VisitorStmt[any]) (any, error) {

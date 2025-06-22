@@ -1,8 +1,9 @@
 package interpreter
 
 type LoxClass struct {
-	name    string
-	methods map[string]*LoxFunction
+	name       string
+	superclass *LoxClass
+	methods    map[string]*LoxFunction
 }
 
 func (c *LoxClass) Arity() int {
@@ -34,6 +35,10 @@ func (c *LoxClass) String() string {
 func (c *LoxClass) FindMethod(name string) *LoxFunction {
 	if method, ok := c.methods[name]; ok {
 		return method
+	}
+
+	if c.superclass != nil {
+		return c.superclass.FindMethod(name)
 	}
 
 	return nil
